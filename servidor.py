@@ -1,6 +1,8 @@
-import bd_conections
 import utils
+import bd_conections
 import pandas as pd
+from datetime import date
+import time
 
 def servidor():
     es_volver = False
@@ -29,7 +31,31 @@ def servidor():
                 print("\nIngrese una opcion valida")
 
 def ingresar_servidor():
-    pass
+    utils.borrarPantalla()
+    print("\nIngresar a los Servidores")
+    nombres = input("\nNombres: ")
+    apellidos = input("Apellidos: ")
+
+    email = "null"
+    if(input("Tiene email? (y/n): ") == "y"):
+        email = input("Email: ")
+    celular = "null"
+    if input("Tiene numero celular? (y/n): ") == "y":
+        celular = input("Celular: ")
+
+    ciudad = input("Ciudad correspondiente del Servidor: ")
+    es_guia = 1 if (input("El Servidor es Guia? (y/n): ") == "y") else 0
+    es_subguia = 1 if (input("El Servidor es sub Guia? (y/n): ") == "y") else 0
+
+    utils.borrarPantalla()
+    time.sleep(2)
+    print("\nRegistrando Servidor...\n")
+    utils.borrarPantalla()
+    time.sleep(2)
+
+    #Seccion de SQL
+
+
 
 def actualizar_servidor():
     pass
