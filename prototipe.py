@@ -1,6 +1,7 @@
 import sys
 import participante as prt
 import servidor as ser
+import retiro as ret
 import utils
 import time
 
@@ -22,7 +23,7 @@ def main():
             case 2:
                 ser.servidor()
             case 3:
-                break
+                ret.retiro()
             case 4:
                 es_salida = True
             case _:
