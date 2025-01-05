@@ -3,7 +3,7 @@
 ## Clonar repositorio
 En la carpeta que desea clonar el repositorio ingrese el siguiente comando:
 ```
-git clone git@github.com:MrJJ86/BD_grupo-9.git
+git clone https://github.com/MrJJ86/BD_grupo-9.git
 ```
 
 ## Librerías
