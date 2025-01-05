@@ -44,8 +44,10 @@ def ingresar_servidor():
         celular = input("Celular: ")
 
     ciudad = input("Ciudad correspondiente del Servidor: ")
+    ronca = 1 if (input("El participante Ronca? (y/n): ") == "y") else 0
     es_guia = 1 if (input("El Servidor es Guia? (y/n): ") == "y") else 0
     es_subguia = 1 if (input("El Servidor es sub Guia? (y/n): ") == "y") else 0
+    
 
     utils.borrarPantalla()
     time.sleep(2)
@@ -54,7 +56,21 @@ def ingresar_servidor():
     time.sleep(2)
 
     #Seccion de SQL
-
+    try:
+        cond_servidor = f"nombre='{nombres}' AND apellido='{apellidos}'"
+        servidor_existente = bd_conections.visualizar_datos("servidor", "id_servidor", cond_servidor)
+        
+        if len(servidor_existente) == 0:
+            campos_servidor = ["nombre", "apellido", "email", "celular", "ciudad", "ronca", "es_guia", "es_subguia"]
+            datos_servidor = [nombres, apellidos, email, celular, ciudad, ronca, es_guia, es_subguia]
+            bd_conections.insertar_datos("servidor", campos_servidor, datos_servidor)
+            
+            id_servidor = bd_conections.visualizar_datos("servidor", "id_servidor", cond_servidor).pop()
+            print(f"Servidor registrado exitosamente con ID: {id_servidor}")
+        else:
+            print("El servidor ya está registrado en la base de datos.")
+    except Exception as e:
+        print(f"Ocurrió un error al registrar al servidor: {e}")
 
 
 def actualizar_servidor():
