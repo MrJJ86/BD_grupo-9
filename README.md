@@ -3,7 +3,7 @@
 ## Clonar repositorio
 En la carpeta que desea clonar el repositorio ingrese el siguiente comando:
 ```
-git clone git@github.com:MrJJ86/BD_grupo-9.git
+git clone https://github.com/MrJJ86/BD_grupo-9.git
 ```
 
 ## Librerías
@@ -13,7 +13,7 @@ git clone git@github.com:MrJJ86/BD_grupo-9.git
 ## Instalación de librerias
 En la consola ingrese los siguientes comandos
 ```
-pip install MySQL-python
+pip install mysql-connector-python
 ```
 ```
 pip install Pandas
