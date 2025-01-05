@@ -72,9 +72,74 @@ def ingresar_servidor():
     except Exception as e:
         print(f"Ocurrió un error al registrar al servidor: {e}")
 
-
-def actualizar_servidor():
+def actualizar():
     pass
+
+def actualizar_servidor(id_servidor):
+    tabla = "servidor"
+    condicion = f"id_servidor={id_servidor}"
+    df_servidor = pd.DataFrame(bd_conections.visualizar_datos(tabla,condicion=condicion)).to_string(index=False)
+    while True:
+        utils.borrarPantalla()
+        print("\nActualizar Servidor")
+        print("1. Nombres y Apellidos")
+        print("2. Email y Celular")
+        print("3. Ciudad")
+        print("4. Informacion del servidor adicional")
+        print("5. Regresar")
+        opc = int(input("Seleccione una opcion: "))
+        match opc:
+            case 1:
+                utils.borrarPantalla()
+                print("\nActualizar Nombres y Apellidos del Servidor")
+                print(df_servidor)
+                nombre = input("Nombre: ")
+                apellido = input("Apellido: ")
+                try:
+                    bd_conections.actualizar_datos(tabla,["nombre","apellido"],condicion,{"nombre":nombre,"apellido":apellido})
+                except Exception as e:
+                    print(f"Error al actualizar el Servidor: {e}")
+                time.sleep(2)
+            case 2:
+                utils.borrarPantalla()
+                print("\nActualizar Email y Celular del Servidor")
+                print(df_servidor)
+                celular = input("Celular: ")
+                email=input("Email: ")
+
+                try:
+                    bd_conections.actualizar_datos(tabla,["email","celular"],condicion,{"email":email,"celular":celular})
+                except Exception as e:
+                    print(f"Error al actualizar el Servidor: {e}")
+                time.sleep(2)
+            case 3:
+                utils.borrarPantalla()
+                print("\nActualizar Ciudad del Servidor")
+                print(df_servidor)
+                ciudad = input("Ciudad correspondiente: ")
+
+                try:
+                    bd_conections.actualizar_datos(tabla,["ciudad"],condicion,{"ciudad":ciudad})
+                except Exception as e:
+                    print(f"Error al actualizar ell Servidor: {e}")
+                time.sleep(2)
+            case 4:
+                utils.borrarPantalla()
+                print("\nActualizar informacion adicional del Servidor")
+                print(df_servidor)
+                ronca = 1 if (input("El participante Ronca? (y/n): ") == "y") else 0
+                es_guia = 1 if (input("El Servidor es Guia? (y/n): ") == "y") else 0
+                es_subguia = 1 if (input("El Servidor es sub Guia? (y/n): ") == "y") else 0
+                try:
+                    bd_conections.actualizar_datos("servidor",["ronca","es_guia","es_subguia"],condicion,{"ronca":ronca,"es_guia":es_guia,"es_subguia":es_subguia})
+                except Exception as e:
+                    print(f"Error al actualizar el Servidor: {e}")
+                time.sleep(2)
+            case 5:
+                break
+            case _:
+                print("Seleccione una opcion valida")
+                time.sleep(2)
 
 def eliminar_servidor():
     pass
