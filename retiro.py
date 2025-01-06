@@ -145,7 +145,7 @@ def eliminar_retiro():
         match opc:
             case 1:
                 utils.borrarPantalla()
-                lista_participantes_id()
+                lista_retiro_id()
                 id = int(input("\nIngrese el id del participante: "))
                 condicion = f"id_participante={id}"
                 try:
