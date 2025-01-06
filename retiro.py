@@ -25,7 +25,7 @@ def retiro():
             case 3:
                 eliminar_registro()
             case 4:
-                listas_retiro()
+                lista_registro()
             case 5:
                 ingresar_donaciones()
             case 6:
@@ -252,6 +252,58 @@ def lista_donacion_id():
     print("\n**Lista de Donaciones**")
     print(df.to_string(index=False))
     print()
+
+def lista_registro():
+    while True:
+        utils.borrarPantalla()
+        print("\nListas")
+        print("1. Información de Retiros")
+        print("2. Información de Pagos ")
+        print("3. Información de Donaciones")
+        print("4. Regresar")
+        opc = int(input("Seleccione una opcion: "))
+        match opc:
+            case 1:
+                utils.borrarPantalla()
+                lista_info_retiros()
+                input("Presione una Tecla para Regresar")
+                time.sleep(2)
+            case 2:
+                utils.borrarPantalla()
+                lista_info_pagos()
+                input("Presione una Tecla para Regresar")
+                time.sleep(2)
+            case 3:
+                utils.borrarPantalla()
+                lista_info_donaciones()
+                input("Presione una Tecla para Regresar")
+                time.sleep(2)
+            case 4:
+                break
+            case _:
+                print("Seleccione una opcion valida")
+                time.sleep(2)
+
+def lista_info_retiros():
+    tabla = "retiro"
+    columnas_df = ["id_retiro","parroquia","tipo"]
+    columnas_sql = ",".join(columnas_df)
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas_sql), columns=columnas_df).to_string(index=False)
+    print(df)
+
+def lista_info_pagos():
+    tabla = "pago"
+    columnas_df = ["id_pago","valor","pago_completado"]
+    columnas_sql = ",".join(columnas_df)
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas_sql), columns=columnas_df).to_string(index=False)
+    print(df)
+
+def lista_info_donaciones():
+    tabla = "donacion"
+    columnas_df = ["id_donacion","nombre","detalle","valor"]
+    columnas_sql = ",".join(columnas_df)
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas_sql), columns=columnas_df).to_string(index=False)
+    print(df)
 
 
 def ingresar_donaciones():
