@@ -146,11 +146,11 @@ def eliminar_retiro():
             case 1:
                 utils.borrarPantalla()
                 lista_retiro_id()
-                id = int(input("\nIngrese el id del participante: "))
-                condicion = f"id_participante={id}"
+                id = int(input("\nIngrese el id del retiro: "))
+                condicion = f"id_retiro={id}"
                 try:
                     bd_conections.eliminar_datos("retiro",condicion)
-                    print("\nParticipante Eliminado")
+                    print("\nRetiro Eliminado")
                 except Exception as e:
                     print(f"Error al eliminar retiro por ID: {e}")
                     
@@ -167,7 +167,58 @@ def eliminar_retiro():
                     print(f"Error al eliminar retiro por Parroquia: {e}")
                 
                 time.sleep(3)
-                
+            case 3:
+                break
+            case _:
+                print("Seleccione una opcion valida")
+                time.sleep(3)
+
+def eliminar_pago():
+    while True:
+        utils.borrarPantalla()
+        print("\nEliminar Pago por")
+        print("1. ID")
+        print("2. Regresar")
+        opc = int(input("Seleccione una opcion: "))
+        match opc:
+            case 1:
+                utils.borrarPantalla()
+                lista_pago_id()
+                id = int(input("\nIngrese el id del pago: "))
+                condicion = f"id_pago={id}"
+                try:
+                    bd_conections.eliminar_datos("pago",condicion)
+                    print("\nPago Eliminado")
+                except Exception as e:
+                    print(f"Error al eliminar pago por ID: {e}")
+                    
+                time.sleep(3)
+            case 2:
+                break
+            case _:
+                print("Seleccione una opcion valida")
+                time.sleep(3)
+
+def eliminar_donacion():
+    while True:
+        utils.borrarPantalla()
+        print("\nEliminar Donación por")
+        print("1. ID")
+        print("2. Regresar")
+        opc = int(input("Seleccione una opcion: "))
+        match opc:
+            case 1:
+                utils.borrarPantalla()
+                lista_donacion_id()
+                id = int(input("\nIngrese el id de la donación: "))
+                condicion = f"id_donacion={id}"
+                try:
+                    bd_conections.eliminar_datos("donacion",condicion)
+                    print("\nDonación Eliminada")
+                except Exception as e:
+                    print(f"Error al eliminar donación por ID: {e}")
+                    
+                time.sleep(3)
             case 3:
                 break
             case _:
@@ -179,5 +230,21 @@ def lista_retiro_id():
     columnas = "id_retiro, parroquia"
     df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "Parroquia"])
     print("\n**Lista de Retiros**")
+    print(df.to_string(index=False))
+    print()
+
+def lista_pago_id():
+    tabla = "pago"
+    columnas = "id_pago, valor"
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "Valor"])
+    print("\n**Lista de Pagos**")
+    print(df.to_string(index=False))
+    print()
+
+def lista_donacion_id():
+    tabla = "donacion"
+    columnas = "id_donacion, nombre"
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "Nombre"])
+    print("\n**Lista de Donaciones**")
     print(df.to_string(index=False))
     print()
