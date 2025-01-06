@@ -23,7 +23,7 @@ def retiro():
             case 2:
                 actualizar_retiro()
             case 3:
-                eliminar_retiro()
+                eliminar_registro()
             case 4:
                 listas_retiro()
             case 5:
@@ -112,3 +112,72 @@ def actualizar_retiro():
     except Exception as e:
         print(f"Ocurrió un error al actualizar el retiro: {e}")
         time.sleep(3)
+
+def eliminar_registro():
+    while True:
+        utils.borrarPantalla()
+        print("\nEliminar Registro")
+        print("1. Retiro")
+        print("2. Pago")
+        print("3. Donacion")
+        opc = int(input("Seleccione una opcion: "))
+        match opc:
+            case 1:
+                eliminar_retiro()
+            case 2:
+                eliminar_pago()
+            case 3:
+                eliminar_donacion()
+            case 4:
+                break
+            case _:
+                print("Seleccione una opcion valida")
+                time.sleep(3)
+
+def eliminar_retiro():
+    while True:
+        utils.borrarPantalla()
+        print("\nEliminar Retiro por")
+        print("1. ID")
+        print("2. Parroquia")
+        print("3. Regresar")
+        opc = int(input("Seleccione una opcion: "))
+        match opc:
+            case 1:
+                utils.borrarPantalla()
+                lista_participantes_id()
+                id = int(input("\nIngrese el id del participante: "))
+                condicion = f"id_participante={id}"
+                try:
+                    bd_conections.eliminar_datos("retiro",condicion)
+                    print("\nParticipante Eliminado")
+                except Exception as e:
+                    print(f"Error al eliminar retiro por ID: {e}")
+                    
+                time.sleep(3)
+            case 2:
+                utils.borrarPantalla()
+                lista_retiro_id()
+                parroquia = input("\nIngrese la parroquia del retiro: ")
+                condicion = f"parroquia=\"{parroquia}\""
+                try:
+                    bd_conections.eliminar_datos("retiro",condicion)
+                    print("\nRetiro Eliminado")
+                except Exception as e:
+                    print(f"Error al eliminar retiro por Parroquia: {e}")
+                
+                time.sleep(3)
+                
+            case 3:
+                break
+            case _:
+                print("Seleccione una opcion valida")
+                time.sleep(3)
+
+def lista_retiro_id():
+    tabla = "retiro"
+    columnas = "id_retiro, parroquia"
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "Parroquia"])
+    print("\n**Lista de Retiros**")
+    print(df.to_string(index=False))
+    print()

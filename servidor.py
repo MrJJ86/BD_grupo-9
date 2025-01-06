@@ -177,7 +177,6 @@ def eliminar_servidor():
                     print(f"Error al eliminar servidor por nombre y apellido: {e}")
                 
                 time.sleep(3)
-                
             case 3:
                 break
             case _:
