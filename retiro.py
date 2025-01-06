@@ -11,7 +11,7 @@ def retiro():
         print("\nMenu Retiros")
         print("1. Registrar Retiro")
         print("2. Actualizar Retiro")
-        print("3. Eliminar Retiro")
+        print("3. Eliminar Registro")
         print("4. Lista de Retiros")
         print("5. Ingresar Donaciones")
         print("6. Ingresar Pagos")
@@ -34,14 +34,14 @@ def retiro():
                 es_volver =  True
             case _:
                 print("\nIngrese una opcion valida")
-                time.sleep(3)
+                time.sleep(2)
 
 
 def ingresar_retiro():
     utils.borrarPantalla()
     print("\nIngresar Retiro")
     parroquia= input("\nIngrese la parroquia donde se realizara el retiro: ")
-    tipo= input("Indica para que personas es el retiro (Hombres/Mujeres/Jovenes):")
+    tipo= input("Indica para que personas es el retiro (Hombres/Mujeres/Jovenes mujeres/Jovenes Hombres):")
     
     utils.borrarPantalla()
     time.sleep(2)
@@ -74,7 +74,14 @@ def ingresar_retiro():
 def actualizar_retiro():
     utils.borrarPantalla()
     print("\nActualizar Retiro")
-    id_retiro = input("Ingrese el ID del retiro que desea actualizar: ")
+
+    # Valida que el ID sea un número válido
+    try:
+        id_retiro = int(input("Ingrese el ID del retiro que desea actualizar: "))
+    except ValueError:
+        print("El ID debe ser un número entero.")
+        time.sleep(2)
+        return  
 
     # Verifica si el retiro existe
     try:
@@ -86,32 +93,29 @@ def actualizar_retiro():
             time.sleep(2)
             return
 
-        retiro = retiro_existente[0]
+        _, parroquia_actual, tipo_actual = retiro_existente[0]
         print(f"\nDatos actuales del retiro con ID {id_retiro}:")
-        print(f"Parroquia: {retiro['parroquia']}")
-        print(f"Tipo: {retiro['tipo']}")
+        print(f"Parroquia: {parroquia_actual}")
+        print(f"Tipo: {tipo_actual}")
 
-        nueva_parroquia = input(f"Nuevo valor para la parroquia (actual: {retiro['parroquia']}): ")
-        nueva_tipo = input(f"Nuevo valor para el tipo (actual: {retiro['tipo']}): ")
+       # Solicita al usuario los nuevos datos
+        nueva_parroquia = input(f"Nuevo valor para la parroquia (actual: {parroquia_actual}): ").strip() or parroquia_actual
+        nuevo_tipo = input(f"Nuevo valor para el tipo (actual: {tipo_actual}): ").strip() or tipo_actual
 
-        if not nueva_parroquia:
-            nueva_parroquia = retiro['parroquia']
-        if not nueva_tipo:
-            nueva_tipo = retiro['tipo']
-
+        # Se actualiza los datos en la database
         valores_actualizados = {
             "parroquia": nueva_parroquia,
-            "tipo": nueva_tipo
+            "tipo": nuevo_tipo
         }
-
-        bd_conections.actualizar_datos("retiro", valores_actualizados, cond_retiro)
+        bd_conections.actualizar_datos("retiro", valores_actualizados, f"id_retiro={id_retiro}")
 
         print(f"\nRetiro con ID {id_retiro} actualizado exitosamente.")
         time.sleep(2)
 
     except Exception as e:
         print(f"Ocurrió un error al actualizar el retiro: {e}")
-        time.sleep(3)
+        time.sleep(2)
+
 
 def eliminar_registro():
     while True:
@@ -132,7 +136,7 @@ def eliminar_registro():
                 break
             case _:
                 print("Seleccione una opcion valida")
-                time.sleep(3)
+                time.sleep(2)
 
 def eliminar_retiro():
     while True:
@@ -219,7 +223,7 @@ def eliminar_donacion():
                     print(f"Error al eliminar donación por ID: {e}")
                     
                 time.sleep(3)
-            case 3:
+            case 2:
                 break
             case _:
                 print("Seleccione una opcion valida")
@@ -248,3 +252,116 @@ def lista_donacion_id():
     print("\n**Lista de Donaciones**")
     print(df.to_string(index=False))
     print()
+
+
+def ingresar_donaciones():
+    while True:
+        utils.borrarPantalla()
+        print("\nIngreso de Donación")
+        
+        lista_retiro_id()
+        # Se ingresa el ID del retiro donde se quiere hacer la donacion
+        try:
+            id_retiro = int(input("\nIngrese el ID del retiro al cual se asociará la donación: "))
+        except ValueError:
+            print("Debe ingresar un número válido para el ID del retiro.")
+            time.sleep(2)
+            continue
+
+        # Verifica si el retiro existe
+        condicion = f"id_retiro={id_retiro}"
+        retiro = bd_conections.visualizar_datos("retiro", "id_retiro", condicion)
+        
+        if not retiro:
+            print("El ID de retiro no es válido. Intente nuevamente.")
+            time.sleep(2)
+            continue
+
+        # El usuario ingresa los datos
+        nombre = input("\nIngrese el nombre de la persona que realiza la donación: ").strip()
+        detalle = input("Ingrese el detalle (motivo) de la donación: ").strip()
+        
+        while True:
+            try:
+                valor = float(input("Ingrese el valor de la donación: "))
+                if valor <= 0:
+                    print("El valor debe ser mayor que 0. Intente nuevamente.")
+                    continue
+                break
+            except ValueError:
+                print("Debe ingresar un número válido para el valor de la donación.")
+     
+        
+        # Se ingresa los datos
+        datos_donacion = {
+            'nombre': nombre,
+            'detalle': detalle,
+            'valor': valor,
+            'id_retiro': id_retiro
+        }
+        columnas = ['nombre', 'detalle', 'valor', 'id_retiro']
+        try:
+            bd_conections.insertar_datos("donacion", columnas, datos_donacion)
+            print("\nDonación registrada correctamente.")
+        except Exception as e:
+            print(f"Error al registrar la donación: {e}")
+
+
+def ingresar_pagos():
+    while True:
+        utils.borrarPantalla()
+        print("\nIngreso de Pago")
+
+        lista_retiro_id()
+        try:
+            id_retiro = int(input("\nIngrese el ID del retiro al cual se asociará el pago: "))
+        except ValueError:
+            print("Debe ingresar un número válido para el ID del retiro.")
+            time.sleep(2)
+            continue
+        
+        # Verificar si el retiro existe
+        condicion = f"id_retiro={id_retiro}"
+        retiro = bd_conections.visualizar_datos("retiro", "id_retiro", condicion)
+        
+        if not retiro:
+            print("El ID de retiro no es válido. Intente nuevamente.")
+            time.sleep(2)
+            continue
+        
+        # El usuario ingresa los datos
+        while True:
+            try:
+                valor = float(input("\nIngrese el valor del pago: "))
+                if valor <= 0:
+                    print("El valor debe ser mayor que 0. Intente nuevamente.")
+                    continue
+                break
+            except ValueError:
+                print("Debe ingresar un número válido para el valor del pago.")
+        
+        while True:
+            pago_completado = input("¿El pago está completado? (s/n): ").strip().lower()
+            if pago_completado == 's':
+                pago_completado = True
+                break
+            elif pago_completado == 'n':
+                pago_completado = False
+                break
+            else:
+                print("Debe ingresar 's' para sí o 'n' para no.")
+        
+        # Se ingresa los datos
+        datos_pago = {
+            'valor': valor,
+            'pago_completado': pago_completado,
+            'id_retiro': id_retiro,
+        }
+
+        columnas = ['valor', 'pago_completado', 'id_retiro']
+        try:
+            bd_conections.insertar_datos("pago", columnas, datos_pago)
+            print("\nPago registrado correctamente.")
+        except Exception as e:
+            print(f"Error al registrar el pago: {e}")
+        
