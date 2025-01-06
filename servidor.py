@@ -141,8 +141,57 @@ def actualizar_servidor(id_servidor):
                 print("Seleccione una opcion valida")
                 time.sleep(2)
 
+
 def eliminar_servidor():
-    pass
+    tabla="servidor"
+    condicion = f"id_servidor={id}"
+    while True:
+        utils.borrarPantalla()
+        print("\nEliminar Servidor por")
+        print("1. ID")
+        print("2. Nombre y Apellido")
+        print("3. Regresar")
+        opc = int(input("Seleccione una opcion: "))
+        match opc:
+            case 1:
+                utils.borrarPantalla()
+                lista_servidor_id()
+                id = int(input("\nIngrese el id del servidor: "))
+                try:
+                    bd_conections.eliminar_datos(tabla,condicion)
+                    print("\nServidor Eliminado")
+                except Exception as e:
+                    print(f"Error al eliminar servidor por ID: {e}")
+                    
+                time.sleep(3)
+            case 2:
+                utils.borrarPantalla()
+                lista_servidor_id()
+                nombre = input("\nIngrese el nombre del servidor: ")
+                apellido = input("Ingrese el apellido del servidor: ")
+                condicion = f"nombre=\"{nombre}\" and apellido=\"{apellido}\""
+                try:
+                    bd_conections.eliminar_datos(tabla,condicion)
+                    print("\nServidor Eliminado")
+                except Exception as e:
+                    print(f"Error al eliminar servidor por nombre y apellido: {e}")
+                
+                time.sleep(3)
+                
+            case 3:
+                break
+            case _:
+                print("Seleccione una opcion valida")
+                time.sleep(3)
+
+def lista_servidor_id():
+    tabla = "servidor"
+    columnas = "id_servidor, nombre, apellido"
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "Nombre","Apellido"])
+    print("\n**Lista de Servidores**")
+    print(df.to_string(index=False))
+    print()
+
 
 def lista_servidor():
     tabla = "servidor"
