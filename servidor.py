@@ -62,7 +62,16 @@ def ingresar_servidor():
         
         if len(servidor_existente) == 0:
             campos_servidor = ["nombre", "apellido", "email", "celular", "ciudad", "ronca", "es_guia", "es_subguia"]
-            datos_servidor = [nombres, apellidos, email, celular, ciudad, ronca, es_guia, es_subguia]
+            datos_servidor = {
+            "nombre": nombres,
+            "apellido": apellidos,
+            "email": email,
+            "celular": celular,
+            "ciudad": ciudad,
+            "ronca": ronca,
+            "es_guia": es_guia,
+            "es_subguia": es_subguia
+        }
             bd_conections.insertar_datos("servidor", campos_servidor, datos_servidor)
             
             id_servidor = bd_conections.visualizar_datos("servidor", "id_servidor", cond_servidor).pop()
