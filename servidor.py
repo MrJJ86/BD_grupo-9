@@ -62,18 +62,57 @@ def ingresar_servidor():
         
         if len(servidor_existente) == 0:
             campos_servidor = ["nombre", "apellido", "email", "celular", "ciudad", "ronca", "es_guia", "es_subguia"]
-            datos_servidor = [nombres, apellidos, email, celular, ciudad, ronca, es_guia, es_subguia]
+            datos_servidor = {
+            "nombre": nombres,
+            "apellido": apellidos,
+            "email": email,
+            "celular": celular,
+            "ciudad": ciudad,
+            "ronca": ronca,
+            "es_guia": es_guia,
+            "es_subguia": es_subguia
+        }
             bd_conections.insertar_datos("servidor", campos_servidor, datos_servidor)
             
             id_servidor = bd_conections.visualizar_datos("servidor", "id_servidor", cond_servidor).pop()
             print(f"Servidor registrado exitosamente con ID: {id_servidor}")
+            time.sleep(2)
         else:
             print("El servidor ya está registrado en la base de datos.")
+            time.sleep(2)
     except Exception as e:
         print(f"Ocurrió un error al registrar al servidor: {e}")
+    time.sleep(3)
 
 def actualizar():
-    pass
+    while True:
+        utils.borrarPantalla()
+        print("\nActualizar Registro")
+        print("1. Servidor")
+        print("2. Regresar")
+        opc = int(input("Seleccione una opcion: "))
+        match opc:
+            case 1:
+                utils.borrarPantalla()
+                lista_servidor_id()
+                id_servidor = int(input("\nIngrese el ID del Servidor a actualizar: "))
+                try:
+                    resultado = bd_conections.visualizar_datos("Servidor","nombre",f"id_servidor={id_servidor}")
+                    if(len(resultado) != 0):
+                        actualizar_servidor(id_servidor)
+                    else:
+                        print(f"El Servidor con el id {id_servidor} no existe")
+
+                except Exception as e:
+                    print(f"Error al comprobar si existe el servidor en actualizar datos: {e}")
+
+                time.sleep(3)
+
+            case 2:
+                break
+            case _:
+                print("Seleccione una opcion valida")
+                time.sleep(3)
 
 def actualizar_servidor(id_servidor):
     tabla = "servidor"
