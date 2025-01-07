@@ -42,6 +42,7 @@ def ingresar_retiro():
     print("\nIngresar Retiro")
     parroquia= input("\nIngrese la parroquia donde se realizara el retiro: ")
     tipo= input("Indica para que personas es el retiro (Hombres/Mujeres/Jovenes mujeres/Jovenes Hombres): ")
+    fecha= input("Ingrese fecha del retiro (yyyy-mm-dd):")
     
     utils.borrarPantalla()
     time.sleep(2)
@@ -51,18 +52,19 @@ def ingresar_retiro():
 
     #Seccion de SQL
     try:
-        cond_retiro = f"parroquia='{parroquia}' AND tipo='{tipo}'"
-        retiro_existente = bd_conections.visualizar_datos("retiro", "id_retiro", cond_retiro)
+        cond_retiro = f"parroquia='{parroquia}' AND tipo='{tipo}' AND fecha='{fecha}'"
+        retiro_existente = bd_conections.visualizar_datos("retiro","id_retiro",cond_retiro)
         
         if len(retiro_existente) == 0:
-            campos_retiro = ["parroquia", "tipo"]
+            campos_retiro = ["parroquia","tipo","fecha"]
             valores_retiro = {
                 "parroquia": parroquia,
-                "tipo": tipo}
+                "tipo": tipo,
+                "fecha": fecha}
             
-            bd_conections.insertar_datos("retiro", campos_retiro, valores_retiro)
+            bd_conections.insertar_datos("retiro",campos_retiro,valores_retiro)
             
-            id_retiro = bd_conections.visualizar_datos("retiro", "id_retiro", cond_retiro).pop()
+            id_retiro = bd_conections.visualizar_datos("retiro","id_retiro",cond_retiro).pop()
             print(f"Retiro registrado exitosamente.")
         else:
             print("Este retiro ya está registrado en la base de datos.")
@@ -93,19 +95,22 @@ def actualizar_retiro():
             time.sleep(2)
             return
 
-        _, parroquia_actual, tipo_actual = retiro_existente[0]
+        _, parroquia_actual, tipo_actual, fecha_actual = retiro_existente[0]
         print(f"\nDatos actuales del retiro con ID {id_retiro}:")
         print(f"Parroquia: {parroquia_actual}")
         print(f"Tipo: {tipo_actual}")
+        print(f"Fecha: {fecha_actual}")
 
        # Solicita al usuario los nuevos datos
         nueva_parroquia = input(f"Nuevo valor para la parroquia (actual: {parroquia_actual}): ").strip() or parroquia_actual
         nuevo_tipo = input(f"Nuevo valor para el tipo (actual: {tipo_actual}): ").strip() or tipo_actual
+        nueva_fecha= input(f"Nueva fecha (actual {fecha_actual}): ").strip() or fecha_actual
 
         # Se actualiza los datos en la database
         valores_actualizados = {
             "parroquia": nueva_parroquia,
-            "tipo": nuevo_tipo
+            "tipo": nuevo_tipo,
+            "fecha":nueva_fecha
         }
         bd_conections.actualizar_datos("retiro", valores_actualizados, f"id_retiro={id_retiro}")
 
@@ -286,7 +291,7 @@ def lista_registro():
 
 def lista_info_retiros():
     tabla = "retiro"
-    columnas_df = ["id_retiro","parroquia","tipo"]
+    columnas_df = ["id_retiro","parroquia","tipo","fecha"]
     columnas_sql = ",".join(columnas_df)
     df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas_sql), columns=columnas_df).to_string(index=False)
     print(df)
