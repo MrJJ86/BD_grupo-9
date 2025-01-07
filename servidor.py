@@ -76,10 +76,13 @@ def ingresar_servidor():
             
             id_servidor = bd_conections.visualizar_datos("servidor", "id_servidor", cond_servidor).pop()
             print(f"Servidor registrado exitosamente con ID: {id_servidor}")
+            time.sleep(2)
         else:
             print("El servidor ya está registrado en la base de datos.")
+            time.sleep(2)
     except Exception as e:
         print(f"Ocurrió un error al registrar al servidor: {e}")
+    time.sleep(3)
 
 def actualizar():
     pass
