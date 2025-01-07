@@ -85,7 +85,34 @@ def ingresar_servidor():
     time.sleep(3)
 
 def actualizar():
-    pass
+    while True:
+        utils.borrarPantalla()
+        print("\nActualizar Registro")
+        print("1. Servidor")
+        print("2. Regresar")
+        opc = int(input("Seleccione una opcion: "))
+        match opc:
+            case 1:
+                utils.borrarPantalla()
+                lista_servidor_id()
+                id_servidor = int(input("\nIngrese el ID del Servidor a actualizar: "))
+                try:
+                    resultado = bd_conections.visualizar_datos("Servidor","nombre",f"id_servidor={id_servidor}")
+                    if(len(resultado) != 0):
+                        actualizar_servidor(id_servidor)
+                    else:
+                        print(f"El Servidor con el id {id_servidor} no existe")
+
+                except Exception as e:
+                    print(f"Error al comprobar si existe el servidor en actualizar datos: {e}")
+
+                time.sleep(3)
+
+            case 2:
+                break
+            case _:
+                print("Seleccione una opcion valida")
+                time.sleep(3)
 
 def actualizar_servidor(id_servidor):
     tabla = "servidor"
