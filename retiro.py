@@ -16,7 +16,7 @@ def retiro():
         print("5. Ingresar Donaciones")
         print("6. Ingresar Pagos")
         print("7. Regresar")
-        opcion = int(input("Seleccione una opcion:"))
+        opcion = int(input("Seleccione una opcion: "))
         match opcion:
             case 1:
                 ingresar_retiro()
@@ -350,21 +350,32 @@ def ingresar_donaciones():
             except ValueError:
                 print("Debe ingresar un número válido para el valor de la donación.")
      
-        
+        utils.borrarPantalla()
+        time.sleep(2)
+        print("\nRegistrando Retiro...\n")
+        utils.borrarPantalla()
+        time.sleep(2)
+
         # Se ingresa los datos
-        datos_donacion = {
-            'nombre': nombre,
-            'detalle': detalle,
-            'valor': valor,
-            'id_retiro': id_retiro
-        }
-        columnas = ['nombre', 'detalle', 'valor', 'id_retiro']
         try:
-            bd_conections.insertar_datos("donacion", columnas, datos_donacion)
-            print("\nDonación registrada correctamente.")
-            break
+            cond_donacion = f"mombre='{nombre}' AND detalle='{detalle}' AND valor='{valor} AND id_retiro='{id_retiro}'"
+            pago_existente = bd_conections.visualizar_datos("donacion", "id_donacion", cond_donacion)
+            
+            if len(pago_existente)==0:
+                columnas = ['nombre', 'detalle', 'valor', 'id_retiro']
+                datos_donacion = {
+                    'nombre': nombre,
+                    'detalle': detalle,
+                    'valor': valor,
+                    'id_retiro': id_retiro}
+                
+                bd_conections.insertar_datos("donacion", columnas, datos_donacion)
+                print("\nDonación registrada correctamente.")
+            else:
+                print("Este pago ya está registrado en la base de datos.")
         except Exception as e:
             print(f"Error al registrar la donación: {e}")
+            time.sleep(2)
 
 
 def ingresar_pagos():
