@@ -129,6 +129,7 @@ def eliminar_registro():
         print("1. Retiro")
         print("2. Pago")
         print("3. Donacion")
+        print("4. Regresar")
         opc = int(input("Seleccione una opcion: "))
         match opc:
             case 1:
@@ -236,8 +237,8 @@ def eliminar_donacion():
 
 def lista_retiro_id():
     tabla = "retiro"
-    columnas = "id_retiro, parroquia"
-    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "Parroquia"])
+    columnas = "id_retiro, parroquia, fecha"
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID",  "Parroquia" , "Fecha"])
     print("\n**Lista de Retiros**")
     print(df.to_string(index=False))
     print()
@@ -360,6 +361,7 @@ def ingresar_donaciones():
         try:
             bd_conections.insertar_datos("donacion", columnas, datos_donacion)
             print("\nDonación registrada correctamente.")
+            break
         except Exception as e:
             print(f"Error al registrar la donación: {e}")
 
