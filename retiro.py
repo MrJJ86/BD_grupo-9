@@ -422,18 +422,28 @@ def ingresar_pagos():
                 break
             else:
                 print("Debe ingresar 's' para sí o 'n' para no.")
-        
-        # Se ingresa los datos
-        datos_pago = {
-            'valor': valor,
-            'pago_completado': pago_completado,
-            'id_retiro': id_retiro,
-        }
+                utils.borrarPantalla()
 
-        columnas = ['valor', 'pago_completado', 'id_retiro']
+        time.sleep(2)
+        print("\nRegistrando donacion...\n")
+        utils.borrarPantalla()
+        time.sleep(2)
+
+        # Se ingresa los datos
         try:
-            bd_conections.insertar_datos("pago", columnas, datos_pago)
-            print("\nPago registrado correctamente.")
+            cond_pago = f"valor='{valor}' AND valor_completado='{pago_completado}' AND id_retiro='{id_retiro}'"
+            pago_existente= bd_conections.visualizar_datos("pago", "id_pago", cond_pago)
+
+            if len(pago_existente)== 0:
+                columnas = ['valor', 'pago_completado', 'id_retiro']
+                datos_pago = {
+                    'valor': valor,
+                    'pago_completado': pago_completado,
+                    'id_retiro': id_retiro}
+                bd_conections.insertar_datos("pago", columnas, datos_pago)
+                print("\nPago registrado correctamente.")
+                
         except Exception as e:
             print(f"Error al registrar el pago: {e}")
+            time.sleep(2)
         
