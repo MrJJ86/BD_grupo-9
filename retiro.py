@@ -358,10 +358,11 @@ def ingresar_donaciones():
 
         # Se ingresa los datos
         try:
-            cond_donacion = f"mombre='{nombre}' AND detalle='{detalle}' AND valor='{valor} AND id_retiro='{id_retiro}'"
+            cond_donacion = f"nombre='{nombre}' AND detalle='{detalle}' AND valor='{valor}' AND id_retiro='{id_retiro}'"
             donacion_existente = bd_conections.visualizar_datos("donacion", "id_donacion", cond_donacion)
             
             if len(donacion_existente)==0:
+                # Si la donación no existe, se inserta en la base de datos.
                 columnas = ['nombre', 'detalle', 'valor', 'id_retiro']
                 datos_donacion = {
                     'nombre': nombre,
