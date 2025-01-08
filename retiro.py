@@ -12,7 +12,7 @@ def retiro():
         print("1. Registrar Retiro")
         print("2. Actualizar Retiro")
         print("3. Eliminar Registro")
-        print("4. Lista de Retiros")
+        print("4. Listas de Registros")
         print("5. Ingresar Donaciones")
         print("6. Ingresar Pagos")
         print("7. Regresar")
@@ -425,7 +425,7 @@ def ingresar_pagos():
                 utils.borrarPantalla()
 
         time.sleep(2)
-        print("\nRegistrando donacion...\n")
+        print("\nRegistrando pago...\n")
         utils.borrarPantalla()
         time.sleep(2)
 
@@ -442,7 +442,7 @@ def ingresar_pagos():
                     'id_retiro': id_retiro}
                 bd_conections.insertar_datos("pago", columnas, datos_pago)
                 print("\nPago registrado correctamente.")
-                
+
         except Exception as e:
             print(f"Error al registrar el pago: {e}")
             time.sleep(2)
