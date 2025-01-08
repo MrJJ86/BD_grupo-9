@@ -42,7 +42,7 @@ def ingresar_retiro():
     print("\nIngresar Retiro")
     parroquia= input("\nIngrese la parroquia donde se realizara el retiro: ")
     tipo= input("Indica para que personas es el retiro (Hombres/Mujeres/Jovenes mujeres/Jovenes Hombres): ")
-    fecha= input("Ingrese fecha del retiro (yyyy-mm-dd):")
+    fecha= input("Ingrese fecha del retiro (yyyy-mm-dd): ")
     
     utils.borrarPantalla()
     time.sleep(2)
@@ -79,6 +79,7 @@ def actualizar_retiro():
 
     # Valida que el ID sea un número válido
     try:
+        lista_retiro_id()
         id_retiro = int(input("Ingrese el ID del retiro que desea actualizar: "))
     except ValueError:
         print("El ID debe ser un número entero.")
