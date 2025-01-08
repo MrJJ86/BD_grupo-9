@@ -3,6 +3,8 @@ import bd_conections
 import pandas as pd
 from datetime import date
 import time
+import participante as part
+import servidor as serv
 
 def retiro():
     es_volver = False
@@ -401,7 +403,43 @@ def ingresar_pagos():
             time.sleep(2)
             continue
         
-        # El usuario ingresa los datos
+        # Determina si el pago pertenece a un participante o servidor
+        while True:
+            tipo_persona = input("¿El pago es realizado por un Participante (p) o un Servidor (s)? ").strip().lower()
+            if tipo_persona in ('p', 's'):
+                break
+            print("Debe ingresar 'p' para Participante o 's' para Servidor.")
+
+        if tipo_persona == 'p':
+            # Obtener ID del participante
+            while True:
+                try:
+                    part.lista_participantes_id()
+                    id_participante = int(input("\nIngrese el ID del participante: "))
+                    condicion_part = f"id_participante={id_participante}"
+                    participante = bd_conections.visualizar_datos("participante", "id_participante", condicion_part)
+                    if not participante:
+                        print("El ID del participante no es válido. Intente nuevamente.")
+                        continue
+                    break
+                except ValueError:
+                    print("Debe ingresar un número válido para el ID del participante.")
+        else:
+            # Obtener ID del servidor
+            while True:
+                try:
+                    serv.lista_servidor_id()
+                    id_servidor = int(input("\nIngrese el ID del servidor: "))
+                    condicion_serv = f"id_servidor={id_servidor}"
+                    servidor = bd_conections.visualizar_datos("servidor", "id_servidor", condicion_serv)
+                    if not servidor:
+                        print("El ID del servidor no es válido. Intente nuevamente.")
+                        continue
+                    break
+                except ValueError:
+                    print("Debe ingresar un número válido para el ID del servidor.")
+
+        # Se ingresa los detalles del pago
         while True:
             try:
                 valor = float(input("\nIngrese el valor del pago: "))
@@ -431,19 +469,32 @@ def ingresar_pagos():
 
         # Se ingresa los datos
         try:
-            cond_pago = f"valor='{valor}' AND valor_completado='{pago_completado}' AND id_retiro='{id_retiro}'"
-            pago_existente= bd_conections.visualizar_datos("pago", "id_pago", cond_pago)
+            columnas = ['valor', 'pago_completado', 'id_retiro']
+            datos_pago = {
+                'valor': valor,
+                'pago_completado': pago_completado,
+                'id_retiro': id_retiro
+            }
+            bd_conections.insertar_datos("pago", columnas, datos_pago)
 
-            if len(pago_existente)== 0:
-                columnas = ['valor', 'pago_completado', 'id_retiro']
-                datos_pago = {
-                    'valor': valor,
-                    'pago_completado': pago_completado,
-                    'id_retiro': id_retiro}
-                bd_conections.insertar_datos("pago", columnas, datos_pago)
-                print("\nPago registrado correctamente.")
+            # Obtener el ID del pago recién registrado
+            cond_pago = f"valor='{valor}' AND pago_completado={int(pago_completado)} AND id_retiro={id_retiro}"
+            nuevo_pago = bd_conections.visualizar_datos("pago", "id_pago", cond_pago)
+            id_pago = nuevo_pago[0][0]
+
+            # Registrar en participante_pago o servidor_pago según el caso
+            if tipo_persona == 'p':
+                columnas_rel = ['id_pago', 'id_participante']
+                datos_rel = {'id_pago': id_pago, 'id_participante': id_participante}
+                bd_conections.insertar_datos("participante_pago", columnas_rel, datos_rel)
+            else:
+                columnas_rel = ['id_pago', 'id_servidor']
+                datos_rel = {'id_pago': id_pago, 'id_servidor': id_servidor}
+                bd_conections.insertar_datos("servidor_pago", columnas_rel, datos_rel)
+
+            print("\nPago registrado correctamente.")
+            time.sleep(2)
 
         except Exception as e:
             print(f"Error al registrar el pago: {e}")
             time.sleep(2)
-        
