@@ -70,7 +70,7 @@ def ingresar_retiro():
             print("Este retiro ya está registrado en la base de datos.")
     except Exception as e:
         print(f"Ocurrió un error al registrar el retiro: {e}")
-    time.sleep(3)
+    time.sleep(2)
 
 
 def actualizar_retiro():
@@ -352,16 +352,16 @@ def ingresar_donaciones():
      
         utils.borrarPantalla()
         time.sleep(2)
-        print("\nRegistrando Retiro...\n")
+        print("\nRegistrando donacion...\n")
         utils.borrarPantalla()
         time.sleep(2)
 
         # Se ingresa los datos
         try:
             cond_donacion = f"mombre='{nombre}' AND detalle='{detalle}' AND valor='{valor} AND id_retiro='{id_retiro}'"
-            pago_existente = bd_conections.visualizar_datos("donacion", "id_donacion", cond_donacion)
+            donacion_existente = bd_conections.visualizar_datos("donacion", "id_donacion", cond_donacion)
             
-            if len(pago_existente)==0:
+            if len(donacion_existente)==0:
                 columnas = ['nombre', 'detalle', 'valor', 'id_retiro']
                 datos_donacion = {
                     'nombre': nombre,
@@ -372,7 +372,7 @@ def ingresar_donaciones():
                 bd_conections.insertar_datos("donacion", columnas, datos_donacion)
                 print("\nDonación registrada correctamente.")
             else:
-                print("Este pago ya está registrado en la base de datos.")
+                print("Esta donacion ya está registrado en la base de datos.")
         except Exception as e:
             print(f"Error al registrar la donación: {e}")
             time.sleep(2)
