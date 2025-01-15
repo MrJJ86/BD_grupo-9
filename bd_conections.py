@@ -78,3 +78,28 @@ def visualizar_datos(tabla, columnas=None, condicion=None, grupo=None, cond_grup
     cnx.close()
 
     return seleccion
+
+# Utilizar este metodo para insertar/actualizar/eliminar de cualquier tabla
+
+def llamar_procedimiento(nombre: str, parametros: tuple) -> str:
+    try:
+        cnx = conexion_bd()
+        cnx.autocommit = True
+        cnx.cursor().callproc(nombre, parametros)
+        cnx.close()
+        return "Proceso Exitoso"
+    except mysql.connector.Error as err:
+        return err.msg
+    
+
+# Utilizar este metodo para verificar un id en una tabla
+# El procedimiento tiene que tener el prefijo: VerificarID
+# Cada palabra del nombre de la tabla tiene que comenzar con mayuscula
+def verificar_id(tabla: str, id: int):
+    try:
+        cnx = conexion_bd()
+        cursor = cnx.cursor()
+        result = cursor.callproc("VerificarID" + tabla , (id, 0))
+        return result[1]
+    except mysql.connector.Error as err:
+        return f"Error al verificar el ID {id} de la tabla {tabla}"
