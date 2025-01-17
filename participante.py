@@ -539,6 +539,7 @@ def actualizar_participante(id_participante):
 def actualizar_familiar(id_familiar):
     tabla = "familiar"
     condicion = f"id_familiar={id_familiar}"
+    actualizar_datos = [id_familiar, None, None, None, None]
     while True:
         utils.borrarPantalla()
         print("\nActualizar Familiares")
@@ -550,29 +551,49 @@ def actualizar_familiar(id_familiar):
             case 1:
                 utils.borrarPantalla()
                 print("\nActualizar Nombres y Apellidos del Familiar")
-                nombre = input("Nombre: ")
-                apellido = input("Apellido: ")
-                try:
-                    bd_conections.actualizar_datos(tabla,["nombre","apellido"],condicion,(nombre,apellido))
-                except Exception as e:
-                    print(f"Error al actualizar familiar: {e}")
+                df_nom_ape = pd.DataFrame(
+                    bd_conections.visualizar_datos(tabla,"id_familiar, nombre, apellido",condicion=condicion),
+                    columns=["ID","nombre","apellido"]).to_string(index=False)
+                print(df_nom_ape)
 
-                time.sleep(2)
+                nombre = input("\nNombre: ")
+                apellido = input("Apellido: ")
+
+                actualizar_datos[1] = nombre
+                actualizar_datos[2] = apellido
+                
+                resultado = bd_conections.llamar_procedimiento("ActualizarFamiliar",tuple(actualizar_datos))
+
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    time.sleep(2)
 
             case 2:
                 utils.borrarPantalla()
-                print("\nActualizar Nombres y Apellidos del Familiar")
-                email = "null"
+                print("\nActualizar Email y Celular del Familiar")
+                df_email_cel = pd.DataFrame(
+                    bd_conections.visualizar_datos(tabla,"nombre, apellido, email, celular",condicion=condicion),
+                    columns=["nombre","apellido","email","celular"]).to_string(index=False)
+                print(df_email_cel)
+
+                email = None
                 if(input("El familiar tiene email? (y/n): ")=="y"):
                     email = input("Email: ")
 
                 celular = input("Celular: ")
-                try:
-                    bd_conections.actualizar_datos(tabla,["email","celular"],condicion,(email,celular))
-                except Exception as e:
-                    print(f"Error al actualizar familiar: {e}")
 
-                time.sleep(2)
+                actualizar_datos[3] = email
+                actualizar_datos[4] = celular
+                
+                resultado = bd_conections.llamar_procedimiento("ActualizarFamiliar",tuple(actualizar_datos))
+
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    time.sleep(2)
 
             case 3:
                 break
@@ -614,27 +635,30 @@ def eliminar_participante():
                 utils.borrarPantalla()
                 lista_participantes_id()
                 id = int(input("\nIngrese el id del participante: "))
-                condicion = f"id_participante={id}"
-                try:
-                    bd_conections.eliminar_datos("participante",condicion)
-                    print("\nParticipante Eliminado")
-                except Exception as e:
-                    print(f"Error al eliminar participante por ID: {e}")
-                    
-                time.sleep(3)
+
+                resultado = bd_conections.llamar_procedimiento("EliminarParticipantePorID",tuple([id]))
+
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    print("Participante Eliminado")
+                    time.sleep(3)
+                
             case 2:
                 utils.borrarPantalla()
                 lista_participantes_id()
                 nombre = input("\nIngrese el nombre del participante: ")
                 apellido = input("Ingrese el apellido del participante: ")
-                condicion = f"nombre=\"{nombre}\" and apellido=\"{apellido}\""
-                try:
-                    bd_conections.eliminar_datos("participante",condicion)
-                    print("\nParticipante Eliminado")
-                except Exception as e:
-                    print(f"Error al eliminar participante por Nombre y Apellido: {e}")
                 
-                time.sleep(3)
+                resultado = bd_conections.llamar_procedimiento("EliminarParticipantePorNombreApellido",(nombre, apellido))
+
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    print("Participante Eliminado")
+                    time.sleep(3)
                 
             case 3:
                 break
@@ -656,28 +680,30 @@ def eliminar_familiar():
                 utils.borrarPantalla()
                 lista_familiares_id()
                 id = int(input("\nIngrese el id del familiar: "))
-                condicion = f"id_familiar={id}"
-                try:
-                    bd_conections.eliminar_datos("familiar",condicion)
-                    print("\nFamiliar Eliminado")
-                except Exception as e:
-                    print(f"Error al eliminar familiar por ID: {e}")
+                
+                resultado = bd_conections.llamar_procedimiento("EliminarFamiliarPorID",tuple([id]))
 
-                time.sleep(3)
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    print("Familiar Eliminado")
+                    time.sleep(3)
 
             case 2:
                 utils.borrarPantalla()
                 lista_familiares_id()
                 nombre = input("\nIngrese el nombre del familiar: ")
                 apellido = input("Ingrese el apellido del familiar: ")
-                condicion = f"nombre=\"{nombre}\" and apellido=\"{apellido}\""
-                try:
-                    bd_conections.eliminar_datos("familiar",condicion)
-                    print("\nFamiliar Eliminado")
-                except Exception as e:
-                    print(f"Error al eliminar familiar por Nombre y Apellido: {e}")
+                
+                resultado = bd_conections.llamar_procedimiento("EliminarFamiliarPorNombreApellido",(nombre, apellido))
 
-                time.sleep(3)
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    print("Familiar Eliminado")
+                    time.sleep(3)
 
             case 3:
                 break
@@ -706,9 +732,10 @@ def listas():
         print("\nListas")
         print("1. Info Principal del Participante")
         print("2. Info Adicional del participante")
-        print("3. Familiares de cada Participante")
-        print("4. Participantes por Retiro")
-        print("5. Regresar")
+        print("3. Info de los Familiares")
+        print("4. Familiares de cada Participante")
+        print("5. Participantes por Retiro")
+        print("6. Regresar")
         opc = int(input("Seleccione una opcion: "))
         match opc:
             case 1:
@@ -723,15 +750,20 @@ def listas():
                 time.sleep(2)
             case 3:
                 utils.borrarPantalla()
-                lista_familiares_por_participante()
+                lista_info_familiares()
                 input("Presione una Tecla para Regresar")
                 time.sleep(2)
             case 4:
                 utils.borrarPantalla()
-                lista_participantes_por_retiro()
+                lista_familiares_por_participante()
                 input("Presione una Tecla para Regresar")
                 time.sleep(2)
             case 5:
+                utils.borrarPantalla()
+                lista_participantes_por_retiro()
+                input("Presione una Tecla para Regresar")
+                time.sleep(2)
+            case 6:
                 break
             case _:
                 print("Seleccione una opcion valida")
@@ -750,6 +782,11 @@ def lista_info_adicional_participante():
     df = pd.DataFrame(bd_conections.visualizar_datos(vista), columns=columnas_df).to_string(index=False)
     print(df)
 
+def lista_info_familiares():
+    tabla = "familiar"
+    columnas_df = ["ID_Familiar","nombre","apellido","email","celular"]
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla), columns=columnas_df).to_string(index=False)
+    print(df)
 
 def lista_familiares_por_participante():
     vista = "view_participantesFamiliares"
