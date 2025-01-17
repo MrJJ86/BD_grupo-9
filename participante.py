@@ -121,68 +121,75 @@ def ingresar_participante():
     time.sleep(2)
 
     #Seccion de SQL
-    try:
-        cond_fam = f"nombre=\"{fam_nombre}\"" + " and " + f"apellido=\"{fam_apellido}\""
-        familiarBD = bd_conections.visualizar_datos("familiar","id_familiar", cond_fam)
-    except Exception as e:
-        print(f"Error al visualizar datos del familiar: {e}")
+    
+    #TABLA FAMILIAR
+    id_familiar = bd_conections.verificar_id("Familiar",fam_nombre,fam_celular)
+    datos_familiar = (fam_nombre, fam_apellido, fam_email, fam_celular)
+    
+    # Por si falla la verificación del ID
+    if(isinstance(id_familiar, str)):
+        print(f"\n{id_familiar}")
+        time.sleep(5)
+        return None # Salir de la función por el error producido
 
-    datos_familiar= {'nombre': fam_nombre, 'apellido': fam_apellido, 'email': fam_email, 'celular': fam_celular}
-
-    id_familiar = 0
-    if len(familiarBD) == 0:
-        try:
-            campos_familiar = ["nombre","apellido","email","celular"]
-            bd_conections.insertar_datos("familiar",campos_familiar,datos_familiar)
-            id_familiar = bd_conections.visualizar_datos("familiar","id_familiar", cond_fam).pop()
+    # Insertar Familiar
+    if id_familiar == None:
+        resultado_familiar = bd_conections.llamar_procedimiento("InsertarFamiliar", datos_familiar)
+        id_familiar = bd_conections.verificar_id("Familiar",fam_nombre,fam_celular)
+        if resultado_familiar == "Proceso Exitoso":
             print("\nFamiliar Registrado")
-        except Exception as e:
-            print(f"Error al insertar datos de familiar: {e}")
+        else:
+            print(f"\n{resultado_familiar}")
+            time.sleep(5)
+            return None # Salir de la función por el error producido
+
+    #PARTICIPANTE
+    datos_participante= (nombres,apellidos,email,tel_casa,celular,estado_civil,direccion,fecha_nac,edad,talla,id_familiar,parentesco)
+
+    id_participante = bd_conections.verificar_id("Participante",nombres,apellidos)
+    
+    # Por si falla la verificación del ID
+    if(isinstance(id_participante, str)):
+        print(f"\n{id_participante}")
+        time.sleep(5)
+        return None # Salir de la función por el error producido
+
+    if id_participante == None:
+        #TABLA PARTICIPANTE
+        resultado_participante = bd_conections.llamar_procedimiento("InsertarParticipante",datos_participante)
+        if resultado_participante != "Proceso Exitoso":
+            print(f"\n{resultado_participante}")
+            time.sleep(5)
+            return None # Salir de la función por el error producido
+        
+        id_participante = bd_conections.verificar_id("Participante",nombres,apellidos)
+
+        #TABLA INFORMACION ADICIONAL
+        datos_adicional= (id_participante,fuma,ronca,dieta,medicamento,limit_fisica,observaciones)
+        resultado_info_adi = bd_conections.llamar_procedimiento("InsertarInformacionAdicional",datos_adicional)
+        
+        if resultado_info_adi != "Proceso Exitoso":
+            print(f"\n{resultado_info_adi}")
+        
+        #TABLA ACTIVIDAD PARTICIPANTE
+        
+        datos_actividad= (id_participante,estudia,trabaja,lugar_estudio,lugar_trabajo)
+        resultado_actividad = bd_conections.llamar_procedimiento("InsertarActividadParticipante",datos_actividad)
+        
+        if resultado_actividad != "Proceso Exitoso":
+            print(f"\n{resultado_actividad}")
+        
+        #TABLA SACRAMENTOS
+        datos_sacramentos= (id_participante,bautismo,comunion,confirmacion,matrimonio)
+        resultado_sacramento = bd_conections.llamar_procedimiento("InsertarSacramentos",datos_sacramentos)
+
+        if resultado_sacramento != "Proceso Exitoso":
+            print(f"\n{resultado_sacramento}")
+        
+        print("\nParticipante Registrado")
         
     else:
-        id_familiar = familiarBD.pop()
-
-    datos_participante= {'nombre': nombres, 'apellido': apellidos, 'email': email, 'telefono_casa': tel_casa, 'celular': celular, 'estado_civil': estado_civil, 'direccion': direccion, 'fecha_nacimiento': fecha_nac, 'edad': edad, 'talla': talla, 'id_familiar': id_familiar, "parentesco": parentesco}
-
-    campos_participante = ["nombre","apellido","email","telefono_casa","celular","estado_civil","direccion","fecha_nacimiento","edad","talla","id_familiar","parentesco"]
-    try:
-        cond_part = f"nombre=\"{nombres}\"" + " and " + f"apellido=\"{apellidos}\""
-        participanteDB = bd_conections.visualizar_datos("participante","id_participante",cond_part)
-        if(len(participanteDB) == 0):
-
-            try:
-                bd_conections.insertar_datos("participante",campos_participante,datos_participante)
-                id_participante = bd_conections.visualizar_datos("participante","id_participante",cond_part).pop()
-            except Exception as e:
-                print(f"Error al insertar el participante: {e}")
-
-            try:
-                datos_adicional= {'id_participante': id_participante, 'fuma': fuma, 'ronca': ronca, 'dieta': dieta, 'medicamento': medicamento, 'limitaciones_fisicas': limit_fisica, 'observaciones': observaciones}
-                campos_adicional = ["id_participante","fuma","ronca","dieta","medicamento","limitaciones_fisicas","observaciones"]
-                bd_conections.insertar_datos("informacionadicional",campos_adicional,datos_adicional)
-            except Exception as e:
-                print(f"Error al insertar informacion adicional: {e}")
-            
-            try:
-                datos_actividad= {'id_participante': id_participante, 'estudia': estudia, 'trabaja': trabaja, 'lugar_estudio': lugar_estudio, 'lugar_trabajo': lugar_trabajo}
-                campos_actividad = ["id_participante","estudia","trabaja","lugar_estudio","lugar_trabajo"]
-                bd_conections.insertar_datos("actividadparticipante", campos_actividad, datos_actividad)
-            except Exception as e:
-                print(f"Error al insertar la actividad del participante: {e}")
-            
-            try:
-                datos_sacramentos= {'id_participante': id_participante, 'hizoBautismo': bautismo, 'hizoEucarestia': comunion, 'hizoConfirmacion': confirmacion, 'hizoMatrimonio': matrimonio}
-                campos_sacramentos = ["id_participante","hizoBautismo","hizoEucarestia","hizoConfirmacion","hizoMatrimonio"]
-                bd_conections.insertar_datos("sacramentos",campos_sacramentos,datos_sacramentos)
-            except Exception as e:
-                print(f"Error al insertar los sacramentos del participante: {e}")
-            
-
-            print("\nParticipante Registrado")
-        else:
-            print("El participante ya esta registrado")
-    except Exception as e:
-        print(f"Error al comprobar si participante existe: {e}")
+        print("El participante ya esta registrado")
     
     time.sleep(3)
 
