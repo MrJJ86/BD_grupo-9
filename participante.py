@@ -135,13 +135,14 @@ def ingresar_participante():
     # Insertar Familiar
     if id_familiar == None:
         resultado_familiar = bd_conections.llamar_procedimiento("InsertarFamiliar", datos_familiar)
-        id_familiar = bd_conections.verificar_id("Familiar",fam_nombre,fam_celular)
         if resultado_familiar == "Proceso Exitoso":
             print("\nFamiliar Registrado")
         else:
             print(f"\n{resultado_familiar}")
             time.sleep(5)
             return None # Salir de la función por el error producido
+    
+    id_familiar = bd_conections.verificar_id("Familiar",fam_nombre,fam_celular)
 
     #PARTICIPANTE
     datos_participante= (nombres,apellidos,email,tel_casa,celular,estado_civil,direccion,fecha_nac,edad,talla,id_familiar,parentesco)
@@ -592,17 +593,15 @@ def eliminar_familiar():
 
 
 def lista_participantes_id():
-    tabla = "participante"
-    columnas = "id_participante, nombre, apellido"
-    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "nombre", "apellido"])
+    vista = "view_participanteID"
+    df = pd.DataFrame(bd_conections.visualizar_datos(vista),columns=["ID", "nombre", "apellido"])
     print("\n**Lista de Participante**")
     print(df.to_string(index=False))
     print()
 
 def lista_familiares_id():
-    tabla = "familiar"
-    columnas = "id_familiar, nombre, apellido"
-    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "nombre", "apellido"])
+    vista = "view_familiarID"
+    df = pd.DataFrame(bd_conections.visualizar_datos(vista),columns=["ID", "nombre", "apellido"])
     print("\n**Lista de Familiares**")
     print(df.to_string(index=False))
     print()
@@ -635,7 +634,7 @@ def listas():
                 time.sleep(2)
             case 4:
                 utils.borrarPantalla()
-                lista_familiares_por_participante()
+                lista_participantes_por_retiro()
                 input("Presione una Tecla para Regresar")
                 time.sleep(2)
             case 5:
@@ -645,36 +644,28 @@ def listas():
                 time.sleep(2)
 
 def lista_info_principal_participante():
-    tabla = "participante"
-    columnas_df = ["id_participante","nombre","apellido","email","telefono_casa","celular","estado_civil","direccion","fecha_nacimiento","edad","talla"]
-    columnas_sql = ",".join(columnas_df)
-    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas_sql), columns=columnas_df).to_string(index=False)
+    vista = "view_infoPrincipalParticipante"
+    columnas_df = ["ID_Participante","nombre","apellido","email","telefono_casa","celular","estado_civil","direccion","fecha_nacimiento","edad","talla"]
+    df = pd.DataFrame(bd_conections.visualizar_datos(vista), columns=columnas_df).to_string(index=False)
     print(df)
 
 
 def lista_info_adicional_participante():
-    tabla = "participante join informacionadicional using(id_participante) join actividadparticipante using(id_participante) join sacramentos using(id_participante)"
-    columnas_df = ["id_participante","nombre","apellido","fuma","ronca","dieta","medicamento","limitaciones_fisicas","observaciones","hizoBautismo","hizoEucarestia","hizoConfirmacion","hizoMatrimonio","estudia","trabaja","lugar_estudio","lugar_trabajo"]
-    columnas_sql = ",".join(columnas_df)
-    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas_sql), columns=columnas_df).to_string(index=False)
+    vista = "view_infoAdicionalParticipante"
+    columnas_df = ["ID_Participante","nombre","apellido","fuma","ronca","dieta","medicamento","limitaciones_fisicas","observaciones","estudia","trabaja","lugar_estudio","lugar_trabajo","hizoBautismo","hizoEucarestia","hizoConfirmacion","hizoMatrimonio"]
+    df = pd.DataFrame(bd_conections.visualizar_datos(vista), columns=columnas_df).to_string(index=False)
     print(df)
 
 
 def lista_familiares_por_participante():
-    tabla = "participante join familiar using(id_familiar)"
-    columnas_df = ["id_participante","participante.nombre","participante.apellido","parentesco","familiar.nombre","familiar.apellido","familiar.email","familiar.celular"]
-    columnas_sql = ",".join(columnas_df)
-    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas_sql), columns=columnas_df).to_string(index=False)
+    vista = "view_participantesFamiliares"
+    columnas_df = ["ID_Participante","nombre","apellido","parentesco","nombre familiar","apellido familiar","email familiar","celular familiar"]
+    df = pd.DataFrame(bd_conections.visualizar_datos(vista), columns=columnas_df).to_string(index=False)
     print(df)
 
 
 def lista_participantes_por_retiro():
-    pass
-
-def lista_participante():
-    tabla = "participante join informacionadicional using(id_participante) join actividadparticipante using(id_participante) join familiar using(id_familiar)"
-    columnas = "id_participante,participante.nombre,participante.apellido,participante.email,telefono_casa,participante.celular,estado_civil,direccion,fecha_nacimiento,edad,talla,estudia,lugar_estudio,trabaja,lugar_trabajo,fuma,ronca,dieta,medicamento,limitaciones_fisicas,observaciones,parentesco,familiar.nombre,familiar.apellido,familiar.celular"
-    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas), columns=columnas.split(","))
-    print()
+    vista = "view_participanteRetiro"
+    columnas_df = ["ID_Retiro","parroquia","tipo","fecha","nombre participante","apellido participante"]
+    df = pd.DataFrame(bd_conections.visualizar_datos(vista), columns=columnas_df).to_string(index=False)
     print(df)
-    input("Presione una Tecla para Regresar")
