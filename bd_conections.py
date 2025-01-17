@@ -95,11 +95,15 @@ def llamar_procedimiento(nombre: str, parametros: tuple) -> str:
 # Utilizar este metodo para verificar un id en una tabla
 # El procedimiento tiene que tener el prefijo: VerificarID
 # Cada palabra del nombre de la tabla tiene que comenzar con mayuscula
-def verificar_id(tabla: str, nombre: str, apellido: str):
+def verificar_id(tabla: str,id: int = None, nombre: str = None, apellido: str = None):
     try:
         cnx = conexion_bd()
         cursor = cnx.cursor()
-        result = cursor.callproc("VerificarID" + tabla , (nombre,apellido, 0))
-        return result[2]
+        if(id == None):
+            result = cursor.callproc("VerificarID" + tabla , (nombre,apellido, 0))
+            return result[2]
+        else:
+            result = cursor.callproc("VerificarID" + tabla , (id, 0))
+            return result[1]
     except mysql.connector.Error as err:
         return f"Error al verificar el ID {id} de la tabla {tabla}"

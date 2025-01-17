@@ -123,7 +123,7 @@ def ingresar_participante():
     #Seccion de SQL
     
     #TABLA FAMILIAR
-    id_familiar = bd_conections.verificar_id("Familiar",fam_nombre,fam_celular)
+    id_familiar = bd_conections.verificar_id("FamiliarPorNombreApellido",nombre=fam_nombre,apellido=fam_apellido)
     datos_familiar = (fam_nombre, fam_apellido, fam_email, fam_celular)
     
     # Por si falla la verificación del ID
@@ -142,12 +142,12 @@ def ingresar_participante():
             time.sleep(5)
             return None # Salir de la función por el error producido
     
-    id_familiar = bd_conections.verificar_id("Familiar",fam_nombre,fam_celular)
+    id_familiar = bd_conections.verificar_id("FamiliarPorNombreApellido",nombre=fam_nombre,apellido=fam_apellido)
 
     #PARTICIPANTE
     datos_participante= (nombres,apellidos,email,tel_casa,celular,estado_civil,direccion,fecha_nac,edad,talla,id_familiar,parentesco)
 
-    id_participante = bd_conections.verificar_id("Participante",nombres,apellidos)
+    id_participante = bd_conections.verificar_id("ParticipantePorNombreApellido",nombre=nombres,apellido=apellidos)
     
     # Por si falla la verificación del ID
     if(isinstance(id_participante, str)):
@@ -163,7 +163,7 @@ def ingresar_participante():
             time.sleep(5)
             return None # Salir de la función por el error producido
         
-        id_participante = bd_conections.verificar_id("Participante",nombres,apellidos)
+        id_participante = bd_conections.verificar_id("ParticipantePorNombreApellido",nombre=nombres,apellido=apellidos)
 
         #TABLA INFORMACION ADICIONAL
         datos_adicional= (id_participante,fuma,ronca,dieta,medicamento,limit_fisica,observaciones)
@@ -206,32 +206,40 @@ def actualizar():
             case 1:
                 utils.borrarPantalla()
                 lista_participantes_id()
-                id_participante = int(input("\nIngrese el ID del participante a actualizar: "))
-                try:
-                    resultado = bd_conections.visualizar_datos("participante","nombre",f"id_participante={id_participante}")
-                    if(len(resultado) != 0):
-                        actualizar_participante(id_participante)
-                    else:
-                        print(f"El participante con el id {id_participante} no existe")
+                id_ingresado = int(input("\nIngrese el ID del participante a actualizar: "))
 
-                except Exception as e:
-                    print(f"Error al comprobar si existe participante en actualizar datos: {e}")
+                id_participante = bd_conections.verificar_id("ParticipantePorID",id=id_ingresado)
+
+                # Por si falla la verificación del ID
+                if(isinstance(id_participante, str)):
+                    print(f"\n{id_participante}")
+                    time.sleep(5)
+                    continue
+                
+                if(id_participante != None):
+                    actualizar_participante(id_ingresado)
+                else:
+                    print(f"El participante con el id {id_ingresado} no existe")
 
                 time.sleep(3)
 
             case 2:
                 utils.borrarPantalla()
                 lista_familiares_id()
-                id_familiar = int(input("\nIngrese el ID del familiar a actualizar: "))
-                try:
-                    resultado = bd_conections.visualizar_datos("familiar","nombre",f"id_familiar={id_familiar}")
-                    if(len(resultado) != 0):
-                        actualizar_familiar(id_familiar)
-                    else:
-                        print(f"El familiar con el id {id_familiar} no existe")
+                id_ingresado = int(input("\nIngrese el ID del familiar a actualizar: "))
 
-                except Exception as e:
-                    print(f"Error al comprobar si existe participante en actualizar datos: {e}")
+                id_familiar = bd_conections.verificar_id("FamiliarPorID", id=id_ingresado)
+                
+                # Por si falla la verificación del ID
+                if(isinstance(id_familiar, str)):
+                    print(f"\n{id_familiar}")
+                    time.sleep(5)
+                    continue
+                
+                if(id_familiar != None):
+                    actualizar_familiar(id_ingresado)
+                else:
+                    print(f"El familiar con el id {id_ingresado} no existe")
 
                 time.sleep(3)
 
@@ -246,10 +254,9 @@ def actualizar():
 def actualizar_participante(id_participante):
     tabla = "participante"
     condicion = f"id_participante={id_participante}"
-    df_participante = pd.DataFrame(bd_conections.visualizar_datos(tabla,condicion=condicion)).to_string(index=False)
-    df_adicional = pd.DataFrame(bd_conections.visualizar_datos("informacionadicional",condicion=condicion)).to_string(index=False)
-    df_sacramentos = pd.DataFrame(bd_conections.visualizar_datos("sacramentos",condicion=condicion)).to_string(index=False)
-    df_familiar = pd.DataFrame(bd_conections.visualizar_datos("participante join familiar using(id_familiar)","id_participante, participante.nombre, participante.apellido, familiar.nombre, familiar.apellido",condicion)).to_string(index=False)
+
+    actualizar_datos = [id_participante,None, None, None, None, None, None, None, None, None, None, None, None, None, None]
+
     while True:
         utils.borrarPantalla()
         print("\nActualizar Participante")
@@ -268,105 +275,156 @@ def actualizar_participante(id_participante):
             case 1:
                 utils.borrarPantalla()
                 print("\nActualizar Nombres y Apellidos del Participante")
-                print(df_participante)
-                nombre = input("Nombre: ")
-                apellido = input("Apellido: ")
-                try:
-                    bd_conections.actualizar_datos(tabla,["nombre","apellido"],condicion,{"nombre":nombre,"apellido":apellido})
-                except Exception as e:
-                    print(f"Error al actualizar Participante: {e}")
+                df_nom_ape = pd.DataFrame(
+                    bd_conections.visualizar_datos(tabla,"id_participante, nombre, apellido",condicion=condicion),
+                    columns=["ID","nombre","Apellido"]).to_string(index=False)
+                print(df_nom_ape)
 
-                time.sleep(2)
+                nombre = input("\nNombre: ")
+                apellido = input("Apellido: ")
+
+                actualizar_datos[1] = nombre
+                actualizar_datos[2] = apellido
+                resultado = bd_conections.llamar_procedimiento("ActualizarParticipante",tuple(actualizar_datos))
+
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    time.sleep(2)
 
             case 2:
                 utils.borrarPantalla()
                 print("\nActualizar Fecha de Nacimiento y edad del Participante")
-                print(df_participante)
+                df_fecha_edad = pd.DataFrame(
+                    bd_conections.visualizar_datos(tabla,"nombre, apellido, fecha_nacimiento, edad",condicion=condicion),
+                    columns=["nombre","Apellido","fecha de nacimiento","edad"]).to_string(index=False)
+                print(df_fecha_edad)
+
                 fecha_nac = ""
-                if(input("Cambiar fecha de nacimiento? (y/n): ")=="y"):
+                if(input("\nCambiar fecha de nacimiento? (y/n): ")=="y"):
                     fecha_nac = input("Fecha de nacimiento (YYYY-MM-DD): ")
 
                 edad = int(input("Edad: "))
 
-                try:
-                    if(fecha_nac == ""):
-                        bd_conections.actualizar_datos(tabla,["edad"],condicion,(edad))
-                    else:
-                        bd_conections.actualizar_datos(tabla,["fecha_nacimiento","edad"],condicion,{"fecha_nacimiento":fecha_nac,"edad":edad})
+                resultado = ""
+                if(fecha_nac == ""):
+                    actualizar_datos[9] = edad
+                    resultado = bd_conections.llamar_procedimiento("ActualizarParticipante",tuple(actualizar_datos))
+                else:
+                    actualizar_datos[8] = fecha_nac
+                    actualizar_datos[9] = edad
+                    resultado = bd_conections.llamar_procedimiento("ActualizarParticipante",tuple(actualizar_datos))
 
-                except Exception as e:
-                    print(f"Error al actualizar Participante: {e}")
-
-                time.sleep(2)
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    time.sleep(2)
 
             case 3:
                 utils.borrarPantalla()
                 print("\nActualizar Email y Celular del Participante")
-                print(df_participante)
+                df_email_cel = pd.DataFrame(
+                    bd_conections.visualizar_datos(tabla,"nombre, apellido, email, telefono_casa, celular",condicion=condicion),
+                    columns=["nombre","Apellido","email","telefono domicilio","celular"]).to_string(index=False)
+                print(df_email_cel)
 
-                tel_casa = input("Telefono del domicilio: ")
+                tel_casa = input("\nTelefono del domicilio: ")
                 celular = input("Celular: ")
                 email=input("Email: ")
 
-                try:
-                    bd_conections.actualizar_datos(tabla,["email","telefono_casa","celular"],condicion,{"email":email,"telefono_casa":tel_casa,"celular":celular})
-                except Exception as e:
-                    print(f"Error al actualizar Participante: {e}")
+                actualizar_datos[3] = email
+                actualizar_datos[4] = tel_casa
+                actualizar_datos[5] = celular
 
-                time.sleep(2)
+                resultado = bd_conections.llamar_procedimiento("ActualizarParticipante",tuple(actualizar_datos))
+
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    time.sleep(2)
                 
             case 4:
                 utils.borrarPantalla()
                 print("\nActualizar Direccion de Domicilio del Participante")
-                print(df_participante)
+                df_direccion = pd.DataFrame(
+                    bd_conections.visualizar_datos(tabla,"nombre, apellido, direccion",condicion=condicion),
+                    columns=["nombre","Apellido","direccion"]).to_string(index=False)
+                print(df_direccion)
 
-                direccion = input("Direccion de domicilio: ")
+                direccion = input("\nDireccion de domicilio: ")
 
-                try:
-                    bd_conections.actualizar_datos(tabla,["direccion"],condicion,{"direccion":direccion})
-                except Exception as e:
-                    print(f"Error al actualizar Participante: {e}")
+                actualizar_datos[7] = direccion
+                
+                resultado = bd_conections.llamar_procedimiento("ActualizarParticipante",tuple(actualizar_datos))
 
-                time.sleep(2)
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    time.sleep(2)
                 
             case 5:
                 utils.borrarPantalla()
                 print("\nActualizar Estado civil del Participante")
-                print(df_participante)
+                df_civil = pd.DataFrame(
+                    bd_conections.visualizar_datos(tabla,"nombre, apellido, estado_civil",condicion=condicion),
+                    columns=["nombre","Apellido","estado civil"]).to_string(index=False)
+                print(df_civil)
 
-                print("Estado civil: ")
+                print("\nEstado civil: ")
                 for key,value in estados_civil.items():
                     print(f"{key}. {value}")
                 
-                estado_civil = estados_civil.get(int(input("Seleccione una opcion: ")), "null")
+                estado_civil = estados_civil.get(int(input("Seleccione una opcion: ")), None)
 
-                try:
-                    bd_conections.actualizar_datos(tabla,["estado_civil"],condicion,{"estado_civil":estado_civil})
-                except Exception as e:
-                    print(f"Error al actualizar Participante: {e}")
+                actualizar_datos[6] = estado_civil
+                
+                resultado = bd_conections.llamar_procedimiento("ActualizarParticipante",tuple(actualizar_datos))
 
-                time.sleep(2)
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    time.sleep(2)
                 
             case 6:
                 utils.borrarPantalla()
                 print("\nActualizar Talla de Camisa del Participante")
-                print(df_participante)
+                df_talla = pd.DataFrame(
+                    bd_conections.visualizar_datos(tabla,"nombre, apellido, talla",condicion=condicion),
+                    columns=["nombre","Apellido","talla de camisa"]).to_string(index=False)
+                print(df_talla)
 
-                talla = input("Talla (S/M/L/XL/...): ")
+                talla = input("\nTalla (S/M/L/XL/...): ")
                 
+                actualizar_datos[10] = talla
+                
+                resultado = bd_conections.llamar_procedimiento("ActualizarParticipante",tuple(actualizar_datos))
 
-                try:
-                    bd_conections.actualizar_datos(tabla,["talla"],condicion,{"talla":talla})
-                except Exception as e:
-                    print(f"Error al actualizar Participante: {e}")
-
-                time.sleep(2)
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    time.sleep(2)
                 
             case 7:
                 utils.borrarPantalla()
                 print("\nActualizar Informacion adicional del participante del Participante")
-                print(df_adicional)
-                fuma = 1 if (input("El participante fuma? (y/n): ") == "y") else 0
+                df_adicional = pd.DataFrame(
+                    bd_conections.visualizar_datos("informacionadicional",condicion=condicion),
+                    columns=["ID","fuma","ronca","dieta","medicacion","limitacion fisica","observaciones"])
+                if(df_adicional.empty):
+                    print("\nEl participante no tiene asociado ninguna informacion adicional")
+                else:
+                    print(df_adicional.to_string(index=False))
+
+                if(df_adicional.empty):
+                    print("\nAgregue la informacion adicional del participante: ")
+                
+                fuma = 1 if (input("\nEl participante fuma? (y/n): ") == "y") else 0
                 ronca = 1 if (input("El participante Ronca? (y/n): ") == "y") else 0
                 
                 dieta = "null"
@@ -385,54 +443,90 @@ def actualizar_participante(id_participante):
                 if(input("Tiene alguna observacion sobre el participante? (y/n): ") == "y"):
                     observaciones = input("Observacion: ")
 
-                try:
-                    bd_conections.actualizar_datos("informacionadicional",["fuma","ronca","dieta","medicamento","limitaciones_fisicas","observaciones"],condicion,{"fuma":fuma,"ronca":ronca,"dieta":dieta,"medicamento":medicamento,"limitaciones_fisicas":limit_fisica,"observaciones":observaciones})
-                except Exception as e:
-                    print(f"Error al actualizar Participante: {e}")
+                datos_adicional = (id_participante, fuma, ronca, dieta, medicamento, limit_fisica, observaciones)
+                resultado = ""
+                if(df_adicional.empty):
+                    resultado = bd_conections.llamar_procedimiento("InsertarInformacionAdicional", datos_adicional)
+                else:
+                    resultado = bd_conections.llamar_procedimiento("ActualizarInformacionAdicional", datos_adicional)
 
-                time.sleep(2)
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    time.sleep(2)
                 
             case 8:
                 utils.borrarPantalla()
                 print("\nActualizar Sacramentos del Participante")
-                print(df_sacramentos)
+                df_sacramentos = pd.DataFrame(
+                    bd_conections.visualizar_datos("sacramentos",condicion=condicion),
+                    columns=["ID","bautismo","eucaristia","confirmacion","matrimonio"])
+                if(df_sacramentos.empty):
+                    print("\nEl participante no tiene asociado ningun registro de sacramentos")
+                else:
+                    print(df_sacramentos.to_string(index=False))
 
-                bautismo = 1 if (input("Esta Bautizado? (y/n): ") == "y") else 0
+                if(df_sacramentos.empty):
+                    print("\nAgregue los sacramentos del participante: ")
+
+                bautismo = 1 if (input("\nEsta Bautizado? (y/n): ") == "y") else 0
                 comunion = 1 if (input("Hizo la Primera Comunion? (y/n): ") == "y") else 0
                 confirmacion = 1 if (input("Hizo la Confirmacion? (y/n): ") == "y") else 0
                 matrimonio = 1 if (input("Se caso por la iglesia? (y/n): ") == "y") else 0
 
-                try:
-                    bd_conections.actualizar_datos("sacramentos",["hizoBautismo","hizoEucarestia","hizoConfirmacion","hizoMatrimonio"],condicion,{"hizoBautismo":bautismo,"hizoEucarestia":comunion,"hizoConfirmacion":confirmacion,"hizoMatrimonio":matrimonio})
-                except Exception as e:
-                    print(f"Error al actualizar Participante: {e}")
-                time.sleep(2)
+                datos_sacramentos= (id_participante,bautismo,comunion,confirmacion,matrimonio)
+                resultado = ""
+                if(df_sacramentos.empty):
+                    resultado = bd_conections.llamar_procedimiento("InsertarSacramentos",datos_sacramentos)
+                else:
+                    resultado = bd_conections.llamar_procedimiento("ActualizarSacramentos", datos_sacramentos)
+
+                if(resultado != "Proceso Exitoso"):
+                    print(f"\n{resultado}")
+                    time.sleep(5)
+                else:
+                    time.sleep(2)
                 
             case 9:
                 utils.borrarPantalla()
                 print("\nActualizar Familiar y Parentesco del Participante")
-                print(df_familiar)
+                df_familiar = pd.DataFrame(
+                    bd_conections.visualizar_datos(
+                    "participante join familiar using(id_familiar)",
+                    "id_participante, participante.nombre, participante.apellido, familiar.nombre, familiar.apellido",
+                    condicion),
+                    columns=["ID","nombre Participante","apellido participante","nombre familiar","apellido familiar"])
+                if(df_familiar.empty):
+                    print("\nEl participante no tiene ningun familiar asignado")
+                else:
+                    print(df_familiar.to_string(index=False))
 
                 id_familiar = -1
+                parentesco = ""
                 if(input("Cambiar el familiar? (y/n): ")=="y"):
                     lista_familiares_id()
                     id_familiar = int(input("Seleccione el ID del nuevo familiar: "))
                     parentesco = input("Parentesco: ")
                 
-                parentesco = ""
-                if(input("Cambiar parentesco del familiar? (y/n): ")=="y"):
+                if(id_familiar < 0 and input("Cambiar parentesco del familiar? (y/n): ")=="y"):
                     parentesco = input("Parentesco: ")
 
-                try:
-                    if(id_familiar >= 0):
-                        bd_conections.actualizar_datos(tabla,["id_familiar","parentesco"],condicion,(id_familiar,parentesco))
-                    else:
-                        if(parentesco != ""):
-                            bd_conections.actualizar_datos(tabla,["parentesco"],condicion,(parentesco))
-                except Exception as e:
-                    print(f"Error al actualizar Participante: {e}")
+                if(id_familiar > 0):
+                    actualizar_datos[11] = id_familiar
+                    actualizar_datos[12] = parentesco
+                else:
+                    if(parentesco != ""):
+                        actualizar_datos[12] = parentesco
+                
+                if(id_familiar >= 0 or parentesco != ""):
+                    resultado = bd_conections.llamar_procedimiento("ActualizarParticipante",tuple(actualizar_datos))
 
-                time.sleep(2)
+                    if(resultado != "Proceso Exitoso"):
+                        print(f"\n{resultado}")
+                        time.sleep(5)
+                    else:
+                        time.sleep(2)
                 
             case 10:
                 break
