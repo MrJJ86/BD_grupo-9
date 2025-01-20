@@ -57,22 +57,25 @@ def ingresar_retiro():
         cond_retiro = f"parroquia='{parroquia}' AND tipo='{tipo}' AND fecha='{fecha}'"
         retiro_existente = bd_conections.visualizar_datos("retiro","id_retiro",cond_retiro)
         
-        if len(retiro_existente) == 0:
-            campos_retiro = ["parroquia","tipo","fecha"]
-            valores_retiro = {
-                "parroquia": parroquia,
-                "tipo": tipo,
-                "fecha": fecha}
-            
-            bd_conections.insertar_datos("retiro",campos_retiro,valores_retiro)
-            
-            id_retiro = bd_conections.visualizar_datos("retiro","id_retiro",cond_retiro).pop()
-            print(f"Retiro registrado exitosamente.")
-        else:
+        if len(retiro_existente) > 0:
             print("Este retiro ya está registrado en la base de datos.")
+            time.sleep(2)
+            return None
+        
+        # Registrar el retiro
+        campos_retiro = ("parroquia","tipo","fecha")
+        resultado_retiro = bd_conections.llamar_procedimiento("InsertarRetiro", datos_retiro)
+        if resultado_retiro == "Proceso Exitoso":
+            print("\nRetiro registrado exitosamente.")
+        else:
+            print(f"\n{resultado_retiro}")
+            time.sleep(5)
+            return None
+             
     except Exception as e:
         print(f"Ocurrió un error al registrar el retiro: {e}")
     time.sleep(2)
+
 
 
 def actualizar_retiro():
@@ -87,22 +90,14 @@ def actualizar_retiro():
         print("El ID debe ser un número entero.")
         time.sleep(2)
         return  
-
-    # Verifica si el retiro existe
+    
     try:
-        cond_retiro = f"id_retiro={id_retiro}"
-        retiro_existente = bd_conections.visualizar_datos("retiro", "*", cond_retiro)
-
-        if len(retiro_existente) == 0:
-            print("No se encontró un retiro con ese ID.")
-            time.sleep(2)
-            return
-
-        _, parroquia_actual, tipo_actual, fecha_actual = retiro_existente[0]
-        print(f"\nDatos actuales del retiro con ID {id_retiro}:")
-        print(f"Parroquia: {parroquia_actual}")
-        print(f"Tipo: {tipo_actual}")
-        print(f"Fecha: {fecha_actual}")
+        # Verifica si el retiro existe
+        retiro_existe = bd_conections.verificar_id("Retiro", id=id_retiro)
+        if isinstance(retiro_existe, str):
+            print(f"\n{retiro_existe}")
+            time.sleep(5)
+            return None
 
        # Solicita al usuario los nuevos datos
         nueva_parroquia = input(f"Nuevo valor para la parroquia (actual: {parroquia_actual}): ").strip() or parroquia_actual
@@ -110,19 +105,20 @@ def actualizar_retiro():
         nueva_fecha= input(f"Nueva fecha (actual {fecha_actual}): ").strip() or fecha_actual
 
         # Se actualiza los datos en la database
-        valores_actualizados = {
-            "parroquia": nueva_parroquia,
-            "tipo": nuevo_tipo,
-            "fecha":nueva_fecha
-        }
-        bd_conections.actualizar_datos("retiro", valores_actualizados, f"id_retiro={id_retiro}")
-
-        print(f"\nRetiro con ID {id_retiro} actualizado exitosamente.")
-        time.sleep(2)
+        datos_actualizados = (id_retiro, nueva_parroquia, nuevo_tipo, nueva_fecha)
+        resultado_actualizacion = bd_conections.llamar_procedimiento("ActualizarRetiro", datos_actualizados)
+        
+        if resultado_actualizacion == "Proceso Exitoso":
+            print(f"\nRetiro con ID {id_retiro} actualizado exitosamente.")
+        else:
+            print(f"\n{resultado_actualizacion}")
+            time.sleep(5)
+            return None
 
     except Exception as e:
         print(f"Ocurrió un error al actualizar el retiro: {e}")
         time.sleep(2)
+
 
 
 def eliminar_registro():
