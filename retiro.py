@@ -12,26 +12,26 @@ def retiro():
         utils.borrarPantalla()
         print("\nMenu Retiros")
         print("1. Registrar Retiro")
-        print("2. Actualizar Retiro")
-        print("3. Eliminar Registro")
-        print("4. Listas de Registros")
-        print("5. Ingresar Donaciones")
-        print("6. Ingresar Pagos")
+        print("2. Ingresar Donaciones")
+        print("3. Ingresar Pagos")
+        print("4. Actualizar Registros")
+        print("5. Eliminar Registros")
+        print("6. Listas de Registros")
         print("7. Regresar")
         opcion = int(input("Seleccione una opcion: "))
         match opcion:
             case 1:
                 ingresar_retiro()
             case 2:
-                actualizar_retiro()
-            case 3:
-                eliminar_registro()
-            case 4:
-                lista_registro()
-            case 5:
                 ingresar_donaciones()
-            case 6:
+            case 3:
                 ingresar_pagos()
+            case 4:
+                actualizar_registros()
+            case 5:
+                eliminar_registro()
+            case 6:
+                lista_registro()
             case 7:
                 es_volver =  True
             case _:
@@ -54,6 +54,7 @@ def ingresar_retiro():
 
     #Seccion de SQL
     try:
+        # Verificar si el retiro ya existe
         cond_retiro = f"parroquia='{parroquia}' AND tipo='{tipo}' AND fecha='{fecha}'"
         retiro_existente = bd_conections.visualizar_datos("retiro","id_retiro",cond_retiro)
         
@@ -63,7 +64,7 @@ def ingresar_retiro():
             return None
         
         # Registrar el retiro
-        campos_retiro = ("parroquia","tipo","fecha")
+        datos_retiro = (parroquia, tipo, fecha)
         resultado_retiro = bd_conections.llamar_procedimiento("InsertarRetiro", datos_retiro)
         if resultado_retiro == "Proceso Exitoso":
             print("\nRetiro registrado exitosamente.")
@@ -76,6 +77,29 @@ def ingresar_retiro():
         print(f"Ocurrió un error al registrar el retiro: {e}")
     time.sleep(2)
 
+
+def actualizar_registros():
+    es_volver = False
+    while not es_volver:
+        utils.borrarPantalla()
+        print("\nActualizar Registros")
+        print("1. Actualizar Retiro")
+        print("2. Actualizar Donación")
+        print("3. Actualizar Pago")
+        print("4. Regresar")
+        opcion = int(input("Seleccione una opcion: "))
+        match opcion:
+            case 1:
+                actualizar_retiro()
+            case 2:
+                actualizar_donacion()
+            case 3:
+                actualizar_pago()
+            case 4:
+                es_volver = True
+            case _:
+                print("\nIngrese una opcion válida")
+                time.sleep(2)
 
 
 def actualizar_retiro():
@@ -94,10 +118,19 @@ def actualizar_retiro():
     try:
         # Verifica si el retiro existe
         retiro_existe = bd_conections.verificar_id("Retiro", id=id_retiro)
-        if isinstance(retiro_existe, str):
-            print(f"\n{retiro_existe}")
-            time.sleep(5)
+        if retiro_existe == 0:
+            print(f"No se encontró un retiro con el ID {id_retiro}.")
+            time.sleep(2)
             return None
+
+        # Se obtienen los datos actuales del retiro
+        retiro_actual = bd_conections.visualizar_datos("retiro", "*", f"id_retiro={id_retiro}")
+        if not retiro_actual:
+            print("Error al obtener los datos del retiro.")
+            time.sleep(2)
+            return None
+
+        parroquia_actual, tipo_actual, fecha_actual = retiro_actual[0][1], retiro_actual[0][2], retiro_actual[0][3]
 
        # Solicita al usuario los nuevos datos
         nueva_parroquia = input(f"Nuevo valor para la parroquia (actual: {parroquia_actual}): ").strip() or parroquia_actual
@@ -150,37 +183,75 @@ def eliminar_retiro():
         print("1. ID")
         print("2. Parroquia")
         print("3. Regresar")
-        opc = int(input("Seleccione una opcion: "))
+        try:
+            opc = int(input("Seleccione una opción: "))
+        except ValueError:
+            print("La opción debe ser un número entero.")
+            time.sleep(2)
+            continue
+        
         match opc:
             case 1:
                 utils.borrarPantalla()
                 lista_retiro_id()
-                id = int(input("\nIngrese el id del retiro: "))
-                condicion = f"id_retiro={id}"
                 try:
-                    bd_conections.eliminar_datos("retiro",condicion)
-                    print("\nRetiro Eliminado")
+                    id_retiro = int(input("\nIngrese el ID del retiro: "))
+                except ValueError:
+                    print("El ID debe ser un número entero.")
+                    time.sleep(2)
+                    continue
+
+                # Verifica si el retiro existe
+                retiro_existe = bd_conections.verificar_id("Retiro", id=id_retiro)
+                if retiro_existe == 0:
+                    print(f"No se encontró un retiro con el ID {id_retiro}.")
+                    time.sleep(2)
+                    return None
+
+                # Elimina el retiro por ID
+                try:
+                    resultado = bd_conections.llamar_procedimiento("EliminarRetiroPorID", (id_retiro,))
+                    if resultado == "Proceso Exitoso":
+                        print("\nRetiro eliminado exitosamente.")
+                    else:
+                        print(f"\nError: {resultado}")
                 except Exception as e:
                     print(f"Error al eliminar retiro por ID: {e}")
-                    
                 time.sleep(3)
+
             case 2:
                 utils.borrarPantalla()
                 lista_retiro_id()
-                parroquia = input("\nIngrese la parroquia del retiro: ")
-                condicion = f"parroquia=\"{parroquia}\""
-                try:
-                    bd_conections.eliminar_datos("retiro",condicion)
-                    print("\nRetiro Eliminado")
-                except Exception as e:
-                    print(f"Error al eliminar retiro por Parroquia: {e}")
+                parroquia = input("\nIngrese la parroquia del retiro: ").strip()
+                if not parroquia:
+                    print("La parroquia no puede estar vacía.")
+                    time.sleep(2)
+                    continue
                 
+                # Verifica si hay retiros asociados a la parroquia
+                retiros_existen = bd_conections.verificar_id("Retiro", nombre=parroquia)
+                if retiros_existen == 0:
+                    print(f"No se encontraron retiros para la parroquia {parroquia}.")
+                    time.sleep(2)
+                    continue
+
+                # Elimina el retiro por parroquia
+                try:
+                    resultado = bd_conections.llamar_procedimiento("EliminarRetiroPorParroquia", (parroquia,))
+                    if resultado == "Proceso Exitoso":
+                        print("\nRetiros eliminados exitosamente.")
+                    else:
+                        print(f"\nError: {resultado}")
+                except Exception as e:
+                    print(f"Error al eliminar retiros por parroquia: {e}")
                 time.sleep(3)
+
             case 3:
                 break
             case _:
                 print("Seleccione una opcion valida")
                 time.sleep(3)
+
 
 def eliminar_pago():
     while True:
@@ -213,26 +284,63 @@ def eliminar_donacion():
         utils.borrarPantalla()
         print("\nEliminar Donación por")
         print("1. ID")
-        print("2. Regresar")
+        print("2. Nombre")
+        print("3. Regresar")
         opc = int(input("Seleccione una opcion: "))
+        
         match opc:
             case 1:
                 utils.borrarPantalla()
                 lista_donacion_id()
-                id = int(input("\nIngrese el id de la donación: "))
-                condicion = f"id_donacion={id}"
                 try:
-                    bd_conections.eliminar_datos("donacion",condicion)
-                    print("\nDonación Eliminada")
+                    id = int(input("\nIngrese el ID de la donación: "))
+                    # Verifica si la donación existe
+                    donacion = bd_conections.visualizar_datos("donacion", "id_donacion", f"id_donacion={id}")
+                    if not donacion:
+                        print("No se encontró una donación con ese ID.")
+                        time.sleep(2)
+                        continue
+                    
+                    # eliminar por ID
+                    bd_conections.llamar_procedimiento("EliminarDonacionPorID", (id,))
+                    print("\nDonación eliminada correctamente.")
                 except Exception as e:
                     print(f"Error al eliminar donación por ID: {e}")
-                    
+                
                 time.sleep(3)
+
             case 2:
-                break
-            case _:
-                print("Seleccione una opcion valida")
+                utils.borrarPantalla()
+                lista_donacion_id()
+                nombre = input("\nIngrese el nombre de la donación: ").strip()
+                if not nombre:
+                    print("El nombre no puede estar vacío.")
+                    time.sleep(2)
+                    continue
+
+                # Verifica si la donación existe
+                donacion = bd_conections.visualizar_datos("donacion", "id_donacion", f"nombre='{nombre}'")
+                if not donacion:
+                    print("No se encontró una donación con ese nombre.")
+                    time.sleep(2)
+                    continue
+
+                # eliminar por nombre
+                try:
+                    bd_conections.llamar_procedimiento("EliminarDonacionPorNombre", (nombre,))
+                    print("\nDonación eliminada correctamente.")
+                except Exception as e:
+                    print(f"Error al eliminar donación por nombre: {e}")
+                
                 time.sleep(3)
+
+            case 3:
+                break
+
+            case _:
+                print("Seleccione una opción válida.")
+                time.sleep(3)
+
 
 def lista_retiro_id():
     tabla = "retiro"
@@ -326,10 +434,9 @@ def ingresar_donaciones():
             continue
 
         # Verifica si el retiro existe
-        condicion = f"id_retiro={id_retiro}"
-        retiro = bd_conections.visualizar_datos("retiro", "id_retiro", condicion)
+        retiro_existe = bd_conections.verificar_id("Retiro", id=id_retiro)
         
-        if not retiro:
+        if retiro_existe == 0:
             print("El ID de retiro no es válido. Intente nuevamente.")
             time.sleep(2)
             continue
@@ -355,26 +462,24 @@ def ingresar_donaciones():
         time.sleep(2)
 
         # Se ingresa los datos
-        try:
-            cond_donacion = f"nombre='{nombre}' AND detalle='{detalle}' AND valor='{valor}' AND id_retiro='{id_retiro}'"
-            donacion_existente = bd_conections.visualizar_datos("donacion", "id_donacion", cond_donacion)
+        cond_donacion = f"nombre='{nombre}' AND detalle='{detalle}' AND valor='{valor}' AND id_retiro='{id_retiro}'"
+        donacion_existente = bd_conections.visualizar_datos("donacion", "id_donacion", cond_donacion)
             
-            if len(donacion_existente)==0:
-                # Si la donación no existe, se inserta en la base de datos.
-                columnas = ['nombre', 'detalle', 'valor', 'id_retiro']
-                datos_donacion = {
-                    'nombre': nombre,
-                    'detalle': detalle,
-                    'valor': valor,
-                    'id_retiro': id_retiro}
+        if len(donacion_existente)==0:
+            # Si la donación no existe, se inserta en la base de datos.
+            try:
+                resultado = bd_conections.llamar_procedimiento("InsertarDonacion", (nombre, detalle, valor, id_retiro))
                 
-                bd_conections.insertar_datos("donacion", columnas, datos_donacion)
-                print("\nDonación registrada correctamente.")
-            else:
-                print("Esta donacion ya está registrado en la base de datos.")
-        except Exception as e:
-            print(f"Error al registrar la donación: {e}")
-            time.sleep(2)
+                if resultado == "Proceso Exitoso":
+                    print("\nDonación registrada correctamente.")
+                else:
+                    print(f"Error al registrar la donación: {resultado}")
+            except Exception as e:
+                print(f"Error al registrar la donación: {e}")
+        else:
+            print("Esta donacion ya está registrado en la base de datos.")
+        time.sleep(2)
+
 
 
 def ingresar_pagos():
@@ -463,30 +568,19 @@ def ingresar_pagos():
         utils.borrarPantalla()
         time.sleep(2)
 
-        # Se ingresa los datos
+        # registrar el pago
         try:
-            columnas = ['valor', 'pago_completado', 'id_retiro']
-            datos_pago = {
-                'valor': valor,
-                'pago_completado': pago_completado,
-                'id_retiro': id_retiro
-            }
-            bd_conections.insertar_datos("pago", columnas, datos_pago)
-
-            # Obtener el ID del pago recién registrado
-            cond_pago = f"valor='{valor}' AND pago_completado={int(pago_completado)} AND id_retiro={id_retiro}"
-            nuevo_pago = bd_conections.visualizar_datos("pago", "id_pago", cond_pago)
-            id_pago = nuevo_pago[0][0]
-
-            # Registrar en participante_pago o servidor_pago según el caso
+            # Determinar la persona (participante o servidor)
             if tipo_persona == 'p':
-                columnas_rel = ['id_pago', 'id_participante']
-                datos_rel = {'id_pago': id_pago, 'id_participante': id_participante}
-                bd_conections.insertar_datos("participante_pago", columnas_rel, datos_rel)
+                id_persona = id_participante
             else:
-                columnas_rel = ['id_pago', 'id_servidor']
-                datos_rel = {'id_pago': id_pago, 'id_servidor': id_servidor}
-                bd_conections.insertar_datos("servidor_pago", columnas_rel, datos_rel)
+                id_persona = id_servidor
+
+            # InsertarPago
+            bd_conections.llamar_procedimiento(
+                "InsertarPago",
+                (valor, int(pago_completado), id_retiro, tipo_persona, id_persona)
+            )
 
             print("\nPago registrado correctamente.")
             time.sleep(2)
