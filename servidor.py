@@ -60,9 +60,14 @@ def ingresar_servidor():
         cond_servidor = f"nombre='{nombres}' AND apellido='{apellidos}'"
         servidor_existente = bd_conections.visualizar_datos("servidor", "id_servidor", cond_servidor)
         
-        if len(servidor_existente) == 0:
-            campos_servidor = ["nombre", "apellido", "email", "celular", "ciudad", "ronca", "es_guia", "es_subguia"]
-            datos_servidor = {
+        if len(servidor_existente) > 0:
+            print("Este Servidor ya está registrado en la base de datos.")
+            time.sleep(2)
+            return None
+        
+        # Registrar el servidor
+        campos_servidor = ("nombre", "apellido", "email", "celular", "ciudad", "ronca", "es_guia", "es_subguia")
+        datos_servidor = {
             "nombre": nombres,
             "apellido": apellidos,
             "email": email,
@@ -72,17 +77,17 @@ def ingresar_servidor():
             "es_guia": es_guia,
             "es_subguia": es_subguia
         }
-            bd_conections.insertar_datos("servidor", campos_servidor, datos_servidor)
-            
-            id_servidor = bd_conections.visualizar_datos("servidor", "id_servidor", cond_servidor).pop()
-            print(f"Servidor registrado exitosamente con ID: {id_servidor}")
-            time.sleep(2)
+        resultado_servidor = bd_conections.llamar_procedimiento("InsertarServidor", datos_servidor)
+        if resultado_servidor == "Proceso Exitoso":
+            print("\nRetiro registrado exitosamente.")
         else:
-            print("El servidor ya está registrado en la base de datos.")
-            time.sleep(2)
+            print(f"\n{resultado_servidor}")
+            time.sleep(5)
+            return None
+             
     except Exception as e:
-        print(f"Ocurrió un error al registrar al servidor: {e}")
-    time.sleep(3)
+        print(f"Ocurrió un error al registrar el retiro: {e}")
+    time.sleep(2)
 
 def actualizar():
     while True:
@@ -101,8 +106,12 @@ def actualizar():
                     if(len(resultado) != 0):
                         actualizar_servidor(id_servidor)
                     else:
-                        print(f"El Servidor con el id {id_servidor} no existe")
-
+                        servidor_existe = bd_conections.verificar_id("Servidor", id=id_servidor)
+                        if isinstance(servidor_existe, str):
+                            print(f"\n{servidor_existe}")
+                            time.sleep(5)
+                            return None
+                        
                 except Exception as e:
                     print(f"Error al comprobar si existe el servidor en actualizar datos: {e}")
 
@@ -135,7 +144,15 @@ def actualizar_servidor(id_servidor):
                 nombre = input("Nombre: ")
                 apellido = input("Apellido: ")
                 try:
-                    bd_conections.actualizar_datos(tabla,["nombre","apellido"],condicion,{"nombre":nombre,"apellido":apellido})
+                    datos_actualizados = (id_servidor, nombre, apellido)
+                    resultado_actualizacion = bd_conections.llamar_procedimiento("ActualizarServidor", datos_actualizados)
+                    
+                    if resultado_actualizacion == "Proceso Exitoso":
+                        print(f"\nRetiro con ID {id_retiro} actualizado exitosamente.")
+                    else:
+                        print(f"\n{resultado_actualizacion}")
+                        time.sleep(5)
+                        return None
                 except Exception as e:
                     print(f"Error al actualizar el Servidor: {e}")
                 time.sleep(2)
@@ -147,7 +164,8 @@ def actualizar_servidor(id_servidor):
                 email=input("Email: ")
 
                 try:
-                    bd_conections.actualizar_datos(tabla,["email","celular"],condicion,{"email":email,"celular":celular})
+                    datos_actualizados = (id_servidor, celular, email)
+                    resultado_actualizacion = bd_conections.llamar_procedimiento("ActualizarServidor", datos_actualizados)
                 except Exception as e:
                     print(f"Error al actualizar el Servidor: {e}")
                 time.sleep(2)
@@ -158,7 +176,8 @@ def actualizar_servidor(id_servidor):
                 ciudad = input("Ciudad correspondiente: ")
 
                 try:
-                    bd_conections.actualizar_datos(tabla,["ciudad"],condicion,{"ciudad":ciudad})
+                    datos_actualizados = (id_servidor, ciudad)
+                    resultado_actualizacion = bd_conections.llamar_procedimiento("ActualizarServidor", datos_actualizados)
                 except Exception as e:
                     print(f"Error al actualizar ell Servidor: {e}")
                 time.sleep(2)
@@ -170,7 +189,8 @@ def actualizar_servidor(id_servidor):
                 es_guia = 1 if (input("El Servidor es Guia? (y/n): ") == "y") else 0
                 es_subguia = 1 if (input("El Servidor es sub Guia? (y/n): ") == "y") else 0
                 try:
-                    bd_conections.actualizar_datos("servidor",["ronca","es_guia","es_subguia"],condicion,{"ronca":ronca,"es_guia":es_guia,"es_subguia":es_subguia})
+                    datos_actualizados = (id_servidor, ronca, es_guia,es_subguia)
+                    resultado_actualizacion = bd_conections.llamar_procedimiento("ActualizarServidor", datos_actualizados)
                 except Exception as e:
                     print(f"Error al actualizar el Servidor: {e}")
                 time.sleep(2)
@@ -197,8 +217,14 @@ def eliminar_servidor():
                 lista_servidor_id()
                 id = int(input("\nIngrese el id del servidor: "))
                 try:
-                    bd_conections.eliminar_datos(tabla,condicion)
-                    print("\nServidor Eliminado")
+                    resultado = bd_conections.llamar_procedimiento("EliminarServidorPorID",tuple([id]))
+
+                    if(resultado != "Proceso Exitoso"):
+                        print(f"\n{resultado}")
+                        time.sleep(5)
+                    else:
+                        print("Participante Eliminado")
+                        time.sleep(3)
                 except Exception as e:
                     print(f"Error al eliminar servidor por ID: {e}")
                     
@@ -208,10 +234,16 @@ def eliminar_servidor():
                 lista_servidor_id()
                 nombre = input("\nIngrese el nombre del servidor: ")
                 apellido = input("Ingrese el apellido del servidor: ")
-                condicion = f"nombre=\"{nombre}\" and apellido=\"{apellido}\""
                 try:
-                    bd_conections.eliminar_datos(tabla,condicion)
-                    print("\nServidor Eliminado")
+
+                    resultado = bd_conections.llamar_procedimiento("EliminarServidorPorNombreApellido",(nombre, apellido))
+
+                    if(resultado != "Proceso Exitoso"):
+                        print(f"\n{resultado}")
+                        time.sleep(5)
+                    else:
+                        print("Participante Eliminado")
+                        time.sleep(3)
                 except Exception as e:
                     print(f"Error al eliminar servidor por nombre y apellido: {e}")
                 
@@ -223,9 +255,8 @@ def eliminar_servidor():
                 time.sleep(3)
 
 def lista_servidor_id():
-    tabla = "servidor"
-    columnas = "id_servidor, nombre, apellido"
-    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "Nombre","Apellido"])
+    vista = "view_servidorID"
+    df = pd.DataFrame(bd_conections.visualizar_datos(vista),columns=["ID", "nombre", "apellido"])
     print("\n**Lista de Servidores**")
     print(df.to_string(index=False))
     print()
@@ -233,7 +264,6 @@ def lista_servidor_id():
 
 def lista_servidor():
     tabla = "servidor"
-    columnas = "nombre,apellido,ciudad,email,celular"
-    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas), columns=["Nombre","Apellido","Ciudad","Email","Celular"])
-    print()
+    columnas_df = ["ID_Servidor","nombre","apellido","email","celular"]
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla), columns=columnas_df).to_string(index=False)
     print(df)
