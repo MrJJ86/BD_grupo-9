@@ -19,10 +19,10 @@ def participante():
         print("\nMenu Participantes")
         print("1. Registrar")
         print("2. Actualizar")
-        print("3. eliminar")
+        print("3. Eliminar")
         print("4. Lista de Participantes")
         print("5. Regresar")
-        opcion = int(input("Seleccione una opcion:"))
+        opcion = int(input("Seleccione una opcion: "))
         match opcion:
             case 1:
                 ingresar_participante()
@@ -277,7 +277,7 @@ def actualizar_participante(id_participante):
                 print("\nActualizar Nombres y Apellidos del Participante")
                 df_nom_ape = pd.DataFrame(
                     bd_conections.visualizar_datos(tabla,"id_participante, nombre, apellido",condicion=condicion),
-                    columns=["ID","nombre","Apellido"]).to_string(index=False)
+                    columns=["ID","Nombre","Apellido"]).to_string(index=False)
                 print(df_nom_ape)
 
                 nombre = input("\nNombre: ")

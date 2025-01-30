@@ -11,10 +11,10 @@ def servidor():
         print("\nMenu Servidores")
         print("1. Registrar")
         print("2. Actualizar")
-        print("3. eliminar")
+        print("3. Eliminar")
         print("4. Lista de Servidores")
         print("5. Regresar")
-        print("Seleccione una opcion:")
+        print("Seleccione una opcion: ")
         opcion = int(input())
         match opcion:
             case 1:
