@@ -496,7 +496,6 @@ def actualizar_pago():
         lista_func = part.lista_participantes_id if tipo_persona == 'p' else serv.lista_servidor_id
         tabla_verificar = "ParticipantePorID" if tipo_persona == 'p' else "ServidorPorID"
         monto_maximo = 90 if tipo_persona == 'p' else 75
-        id_persona = None
 
         # Se ingresa el id de la persona que va a realizar el pago
         while True:
@@ -520,12 +519,12 @@ def actualizar_pago():
             print(f"El ID {id_ingr} no existe. Intente nuevamente.")
             time.sleep(2)
 
-
+        lista_otra = lista_participanteXretiros if tipo_persona == 'p' else lista_servidorXretiros
         # Se ingresa el id del retiro que se asocia al pago
         while True:
             try:
                 utils.borrarPantalla()
-                lista_participanteXretiros(id_persona)
+                lista_otra(id_persona)
                 id_ingresado = int(input("Ingrese el ID del retiro asociado al pago que se desea actualizar: "))
             except ValueError:
                 print("Debe ingresar un número válido para el ID del retiro.")
@@ -545,10 +544,11 @@ def actualizar_pago():
             time.sleep(2)
 
         
+        lista_otra2 = lista_pagoXretiroXparticipante if tipo_persona == 'p' else lista_pagoXretiroXservidor
         # Obtener el ID del pago
         while True:
             utils.borrarPantalla()
-            lista_pagoXretiroXparticipante(id_persona, id_retiro)
+            lista_otra2(id_persona, id_retiro)
             try:
                 id_in = int(input("\nIngrese el ID del pago: "))
             except ValueError:
@@ -615,10 +615,11 @@ def actualizar_pago():
         time.sleep(2)
 
         # Se actualiza el valor del pago
-        bd_conections.llamar_procedimiento("ActualizarPago",  (valor_actual, int(pago_completado), id_retiro, tipo_persona, id_persona))
+        bd_conections.llamar_procedimiento("ActualizarPago", (id_pago, valor_actual, int(pago_completado), id_retiro))
         print("\nPago actualizado correctamente.")
         time.sleep(2)
         return
+
 
 
 def eliminar_registros():
@@ -733,7 +734,7 @@ def eliminar_pago():
         match opc:
             case 1:
                 utils.borrarPantalla()
-                lista_pago_id()
+                lista_info_pagoXretiroXparticipante()
                 id = int(input("\nIngrese el id del pago: "))
                 condicion = f"id_pago={id}"
                 try:
@@ -761,7 +762,7 @@ def eliminar_donacion():
         match opc:
             case 1:
                 utils.borrarPantalla()
-                lista_donacion_id()
+                lista_info_donacionesXretiro()
                 try:
                     id = int(input("\nIngrese el ID de la donación: "))
                     # Verifica si la donación existe
@@ -781,7 +782,7 @@ def eliminar_donacion():
 
             case 2:
                 utils.borrarPantalla()
-                lista_donacion_id()
+                lista_info_donacionesXretiro()
                 nombre = input("\nIngrese el nombre de la donación: ").strip()
                 if not nombre:
                     print("El nombre no puede estar vacío.")
@@ -818,9 +819,10 @@ def listas_registros():
         utils.borrarPantalla()
         print("\nListas")
         print("1. Información de Retiros")
-        print("2. Información de Pagos ")
-        print("3. Información de Donaciones")
-        print("4. Regresar")
+        print("2. Información de Pagos de participante")
+        print("3. Información de Pagos de servidores")
+        print("4. Información de Donaciones")
+        print("5. Regresar")
         opc = int(input("Seleccione una opcion: "))
         match opc:
             case 1:
@@ -830,15 +832,21 @@ def listas_registros():
                 time.sleep(2)
             case 2:
                 utils.borrarPantalla()
-                lista_info_pagos()
+                lista_info_pagoXretiroXparticipante()
                 input("Presione una Tecla para Regresar")
                 time.sleep(2)
+
             case 3:
                 utils.borrarPantalla()
-                lista_info_donaciones()
+                lista_info_pagoXretiroXservidor()
                 input("Presione una Tecla para Regresar")
                 time.sleep(2)
             case 4:
+                utils.borrarPantalla()
+                lista_info_donacionesXretiro()
+                input("Presione una Tecla para Regresar")
+                time.sleep(2)
+            case 5:
                 break
             case _:
                 print("Seleccione una opcion valida")
@@ -887,7 +895,6 @@ def lista_info_donaciones():
     df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas_sql), columns=columnas_df).to_string(index=False)
     print(df)
 
-
 def lista_participanteXretiros(id_participante):
     vista = "view_participanteXretiros"
     columns_df= ["id_retiro", "parroquia", "tipo", "fecha"]
@@ -915,6 +922,65 @@ def lista_pagoXretiroXparticipante(id_participante, id_retiro):
     print(df.to_string(index=False))
     print()
 
+def lista_servidorXretiros(id_servidor):
+    vista = "view_servidorXretiros"
+    columns_df= ["id_retiro", "parroquia", "tipo", "fecha"]
+    columnas_str = ", ".join(columns_df)
+    cond_df=  f"Id_Servidor = {id_servidor}"
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla=vista, columnas=columnas_str, condicion=cond_df), columns=columns_df)
+    print("\n**Lista de Retiros asociados al Servidor ingresado**")
+    print(df.to_string(index=False))
+    print()
+
+def lista_pagoXretiroXservidor(id_servidor, id_retiro):
+    vista = "view_pagoXretiroXservidor"
+    columns_df = ["id_pago" ,"parroquia", "tipo", "fecha", "nombre", "apellido", "valor", "pago_completado"]
+    columnas_str = ", ".join(columns_df)
+    cond_df = f"Id_Retiro = {id_retiro} AND Id_Servidor = {id_servidor}"
+    
+    result = bd_conections.visualizar_datos(tabla=vista, columnas=columnas_str, condicion=cond_df)
+    
+    if result is None or len(result) == 0:
+        print("\n**No se encontraron registros para el pago.**")
+        return
+
+    df = pd.DataFrame(result, columns=columns_df)
+    print("\n**Info del Pago asociado al servidor y el retiro ingresado**")
+    print(df.to_string(index=False))
+    print()
+    
+def lista_info_pagoXretiroXparticipante():
+    vista = "view_pagoXretiroXparticipante"
+    columns_df = ["id_pago", "Valor", "Pago_completado", "Nombre", "Apellido", "Parroquia", "Tipo", "Fecha"]
+    columnas_str = ", ".join(columns_df)
+    
+    result = bd_conections.visualizar_datos(tabla=vista, columnas=columnas_str)
+    df = pd.DataFrame(result, columns=columns_df)
+    print("\n**Info del pagos asociados a retiros y participantes**")
+    print(df.to_string(index=False))
+    print()
+
+def lista_info_pagoXretiroXservidor():
+    vista = "view_pagoXretiroXservidor"
+    columns_df = ["id_pago", "Valor", "Pago_completado", "Nombre", "Apellido", "Parroquia", "Tipo", "Fecha"]
+    columnas_str = ", ".join(columns_df)
+    
+    result = bd_conections.visualizar_datos(tabla=vista, columnas=columnas_str)
+    df = pd.DataFrame(result, columns=columns_df)
+    print("\n**Info del pagos asociados a retiros y servidores**")
+    print(df.to_string(index=False))
+    print()
+
+def lista_info_donacionesXretiro():
+    vista = "view_donacionesXretiro"
+    columns_df = ["id_donacion", "Nombre", "Detalle", "Valor", "Parroquia","Tipo","Fecha", ]
+    columnas_str = ", ".join(columns_df)
+    
+    result = bd_conections.visualizar_datos(tabla=vista, columnas=columnas_str)
+    df = pd.DataFrame(result, columns=columns_df)
+    print("\n**Info del donaciones asociados a retiros**")
+    print(df.to_string(index=False))
+    print()
 
 
 def obtener_fecha():
