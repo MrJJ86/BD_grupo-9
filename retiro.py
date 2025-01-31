@@ -46,7 +46,7 @@ def ingresar_registros():
             case 1:
                 ingresar_retiro()
             case 2:
-                ingresar_donaciones()
+                ingresar_donacion()
             case 3:
                 ingresar_pago()
             case 4:
@@ -93,7 +93,7 @@ def ingresar_retiro():
         print(f"Ocurrió un error al registrar el retiro: {e}")
     time.sleep(2)
 
-def ingresar_donaciones():
+def ingresar_donacion():
     while True:
         utils.borrarPantalla()
         print("\nIngreso de Donación")
@@ -163,8 +163,44 @@ def ingresar_pago():
         utils.borrarPantalla()
         print("\nIngreso de Pago")
 
-        lista_retiro_id()
+        # Determina si el pago pertenece a un participante o servidor
+        while True:
+            tipo_persona = input("¿El pago es realizado por un Participante (p) o un Servidor (s)? ").strip().lower()
+            if tipo_persona in ('p', 's'):
+                break
+            print("Debe ingresar 'p' para Participante o 's' para Servidor.")
+
+        lista_func = part.lista_participantes_id if tipo_persona == 'p' else serv.lista_servidor_id
+        tabla_verificar = "ParticipantePorID" if tipo_persona == 'p' else "ServidorPorID"
+        monto_maximo = 90 if tipo_persona == 'p' else 75
+        id_persona = None
+
+        # Se ingresa el id de la persona que va a realizar el pago
+        while True:
+            utils.borrarPantalla()
+            lista_func()
+            try:
+                id_ingr = int(input("\nIngrese el ID de la persona que realizará el pago: "))
+            except ValueError:
+                print("Debe ingresar un número válido para el ID.")
+                time.sleep(2)
+                continue
+            
+            id_persona = bd_conections.verificar_id(tabla_verificar, id=id_ingr)
+            if isinstance(id_persona, str):
+                print(f"\n{id_persona}")
+                time.sleep(5)
+                continue
+            
+            if id_persona is not None:
+                break
+            print(f"El ID {id_ingr} no existe. Intente nuevamente.")
+            time.sleep(2)
+
+        # Se ingresa el id del retiro que se asocia al pago
         try:
+            utils.borrarPantalla()
+            lista_retiro_id()
             id_ingresado = int(input("\nIngrese el ID del retiro al cual se asociará el pago: "))
         except ValueError:
             print("Debe ingresar un número válido para el ID del retiro.")
@@ -176,99 +212,43 @@ def ingresar_pago():
         if isinstance(id_retiro, str):
             print(f"\n{id_retiro}")
             time.sleep(5)
-            return
+            return      
+        if id_retiro is None:
+            print(f"El retiro con el ID {id_ingresado} no existe.")
+            time.sleep(2)
+            continue
         
-        if(id_retiro != None):
-            # Determina si el pago pertenece a un participante o servidor
-            while True:
-                tipo_persona = input("¿El pago es realizado por un Participante (p) o un Servidor (s)? ").strip().lower()
-                if tipo_persona in ('p', 's'):
-                    break
-                print("Debe ingresar 'p' para Participante o 's' para Servidor.")
 
-            if tipo_persona == 'p':
-                utils.borrarPantalla()
-                # Obtener ID del participante
-                while True:
-                    try:
-                        part.lista_participantes_id()
-                        id_participante = int(input("\nIngrese el ID del participante que realizará el pago: "))
-                        condicion_part = f"id_participante={id_participante}"
-                        participante = bd_conections.visualizar_datos("participante", "id_participante", condicion_part)
-                        if not participante:
-                            print("El ID del participante no es válido. Intente nuevamente.")
-                            continue
-                        break
-                    except ValueError:
-                        print("Debe ingresar un número válido para el ID del participante.")
-            else:
-                # Obtener ID del servidor
-                utils.borrarPantalla()
-                while True:
-                    try:
-                        serv.lista_servidor_id()
-                        id_servidor = int(input("\nIngrese el ID del servidor que realizará el pago: "))
-                        condicion_serv = f"id_servidor={id_servidor}"
-                        servidor = bd_conections.visualizar_datos("servidor", "id_servidor", condicion_serv)
-                        if not servidor:
-                            print("El ID del servidor no es válido. Intente nuevamente.")
-                            continue
-                        break
-                    except ValueError:
-                        print("Debe ingresar un número válido para el ID del servidor.")
-
-            # Se ingresa los detalles del pago
-            while True:
-                try:
-                    valor = float(input("\nIngrese el valor del pago: "))
-                    if valor <= 0:
-                        print("El valor debe ser mayor que 0. Intente nuevamente.")
-                        continue
-                    break
-                except ValueError:
-                    print("Debe ingresar un número válido para el valor del pago.")
-            
-            while True:
-                pago_completado = input("¿El pago está completado? (s/n): ").strip().lower()
-                if pago_completado == 's':
-                    pago_completado = True
-                    break
-                elif pago_completado == 'n':
-                    pago_completado = False
-                    break
-                else:
-                    print("Debe ingresar 's' para sí o 'n' para no.")
-                    utils.borrarPantalla()
-
-            time.sleep(2)
-            print("\nRegistrando pago...\n")
-            utils.borrarPantalla()
-            time.sleep(2)
-
-            # registrar el pago
+        # Se ingresa el valor del pago
+        while True:
             try:
-                # Determinar la persona (participante o servidor)
-                if tipo_persona == 'p':
-                    id_persona = id_participante
-                else:
-                    id_persona = id_servidor
-
-                # InsertarPago
-                bd_conections.llamar_procedimiento(
-                    "InsertarPago",
-                    (valor, int(pago_completado), id_retiro, tipo_persona, id_persona)
-                )
-
-                print("\nPago registrado correctamente.")
+                valor = float(input("Ingrese el valor del pago en $: "))
+                if valor <= 0:
+                    print("Error: El pago debe ser mayor a 0.")
+                    time.sleep(2)
+                    continue
+                if valor > monto_maximo:
+                    print(f"Error: El pago total no puede exceder ${monto_maximo}.")
+                    time.sleep(2)
+                    continue
+                break
+            except ValueError:
+                print("Error: El monto debe ser un número.")
                 time.sleep(2)
-
-            except Exception as e:
-                print(f"Error al registrar el pago: {e}")
-                time.sleep(2)
-        else:
-            print(f"El retiro con el id {id_ingresado} no existe")
-        time.sleep(2)
         
+        pago_completado = (valor == monto_maximo)
+        
+        print("\nRegistrando pago...\n")
+        time.sleep(2)
+        utils.borrarPantalla()
+        time.sleep(2)
+
+        # Insertar pago en la base de datos
+        bd_conections.llamar_procedimiento("InsertarPago", (valor, int(pago_completado), id_retiro, tipo_persona, id_persona))
+        print("\nPago registrado correctamente.")
+        time.sleep(2)
+        return
+     
 
 
 def actualizar_registros():
@@ -296,7 +276,6 @@ def actualizar_registros():
 def actualizar_retiro():
     utils.borrarPantalla()
     print("\nActualizar Retiro")
-
     # Valida que el ID sea un número válido
     try:
         lista_retiro_id()
@@ -323,9 +302,9 @@ def actualizar_retiro():
         while True:
             utils.borrarPantalla()
             print("\nActualizar Retiro")
-            print("1. Actualizar Parroquia del Retiro")
-            print("2. Actualizar Tipo del Retiro")
-            print("3. Actualizar Fecha del Retiro")
+            print("1. Actualizar Parroquia")
+            print("2. Actualizar Tipo")
+            print("3. Actualizar Fecha")
             print("4. Regresar")
             opc = int(input("Seleccione una opcion: "))
             match opc:
@@ -393,6 +372,253 @@ def actualizar_retiro():
         print(f"El retiro con el id {id_ingresado} no existe")
     time.sleep(2)
 
+def actualizar_donacion():
+    utils.borrarPantalla()
+    print("\nActualizar Donación")
+    # Valida que el ID sea un número válido
+    try:
+        lista_donacion_id()
+        id_ingresado = int(input("Ingrese el ID de la donación que desea actualizar: "))
+    except ValueError:
+        print("El ID debe ser un número entero.")
+        time.sleep(2)
+        return
+    
+    # Verifica si el retiro existe
+    id_donacion = bd_conections.verificar_id("DonacionPorID", id=id_ingresado)
+    if isinstance(id_donacion, str):
+        print(f"\n{id_donacion}")
+        time.sleep(5)
+        return
+    
+    if(id_donacion != None):
+        tabla = "donacion"
+        condicion = f"id_retiro={id_donacion}"
+        actualizar_datos = [id_donacion,None, None, None, None]
+
+        while True:
+            utils.borrarPantalla()
+            print("\nActualizar Donación")
+            print("1. Actualizar Nombre")
+            print("2. Actualizar Detalle")
+            print("3. Actualizar Valor")
+            print("4. Regresar")
+            opc = int(input("Seleccione una opcion: "))
+            match opc:
+                case 1:
+                    utils.borrarPantalla()
+                    print("\nActualizar Nombre de la donación")
+                    df_nom_ape = pd.DataFrame(
+                    bd_conections.visualizar_datos(tabla,"id_donacion, nombre",condicion=condicion),
+                    columns=["ID","Nombre"]).to_string(index=False)
+                    print(df_nom_ape)
+
+                    nombre = input("\nNombre: ")
+                    actualizar_datos[1] = nombre
+
+                    resultado = bd_conections.llamar_procedimiento("ActualizarDonacion",tuple(actualizar_datos))
+                    if(resultado != "Proceso Exitoso"):
+                        print(f"\n{resultado}")
+                        time.sleep(5)
+                    else:
+                        time.sleep(2)
+
+                case 2:
+                    utils.borrarPantalla()
+                    print("\nActualizar Detalle de la donación")
+                    df_nom_ape = pd.DataFrame(
+                    bd_conections.visualizar_datos(tabla,"id_donacion, nombre, detalle",condicion=condicion),
+                    columns=["ID","Nombre","Detalle"]).to_string(index=False)
+                    print(df_nom_ape)
+
+                    detalle = input("\nDetalle: ")
+                    actualizar_datos[2] = detalle
+
+                    resultado = bd_conections.llamar_procedimiento("ActualizarDonacion",tuple(actualizar_datos))
+                    if(resultado != "Proceso Exitoso"):
+                        print(f"\n{resultado}")
+                        time.sleep(5)
+                    else:
+                        time.sleep(2)
+
+                case 3:
+                    utils.borrarPantalla()
+                    print("\nActualizar Valor de la donación")
+                    df_nom_ape = pd.DataFrame(
+                        bd_conections.visualizar_datos(tabla, "id_donacion, nombre, valor", condicion=condicion),
+                        columns=["ID", "Nombre", "Valor"]).to_string(index=False)
+                    print(df_nom_ape)
+
+                    while True:
+                        try:
+                            valor_adicional = float(input("\nIngrese el valor adicional a la donación: "))
+                            if valor_adicional <= 0:
+                                print("El valor debe ser mayor que 0. Intente nuevamente.")
+                                continue
+                            break
+                        except ValueError:
+                            print("Debe ingresar un número válido para el valor adicional.")
+
+                    # Se actualiza el valor sumando el valor adicional
+                    actualizar_datos[3] = valor_adicional
+
+                    resultado = bd_conections.llamar_procedimiento("ActualizarDonacion", tuple(actualizar_datos))
+                    if resultado != "Proceso Exitoso":
+                        print(f"\n{resultado}")
+                        time.sleep(5)
+                    else:
+                        print("\nValor de la donación actualizado correctamente.")
+                        time.sleep(2)
+
+
+                case 4:
+                    break
+                case _:
+                    print("Seleccione una opcion valida")
+                    time.sleep(2)                   
+
+    else:
+        print(f"La donacion con el id {id_ingresado} no existe")
+    time.sleep(2)
+
+def actualizar_pago():
+    while True:
+        utils.borrarPantalla()
+        print("\nActualizar Pago")
+
+        # Determina si el pago a actualizar pertenece a un participante o servidor
+        while True:
+            tipo_persona = input("¿El pago es realizado por un Participante (p) o un Servidor (s)? ").strip().lower()
+            if tipo_persona in ('p', 's'):
+                break
+            print("Debe ingresar 'p' para Participante o 's' para Servidor.")
+
+        lista_func = part.lista_participantes_id if tipo_persona == 'p' else serv.lista_servidor_id
+        tabla_verificar = "ParticipantePorID" if tipo_persona == 'p' else "ServidorPorID"
+        monto_maximo = 90 if tipo_persona == 'p' else 75
+        id_persona = None
+
+        # Se ingresa el id de la persona que va a realizar el pago
+        while True:
+            utils.borrarPantalla()
+            lista_func()
+            try:
+                id_ingr = int(input("\nIngrese el ID de la persona cuyo pago se va a actualizar: "))
+            except ValueError:
+                print("Debe ingresar un número válido para el ID.")
+                time.sleep(2)
+                continue
+            
+            id_persona = bd_conections.verificar_id(tabla_verificar, id=id_ingr)
+            if isinstance(id_persona, str):
+                print(f"\n{id_persona}")
+                time.sleep(5)
+                continue
+            
+            if id_persona is not None:
+                break
+            print(f"El ID {id_ingr} no existe. Intente nuevamente.")
+            time.sleep(2)
+
+
+        # Se ingresa el id del retiro que se asocia al pago
+        while True:
+            try:
+                utils.borrarPantalla()
+                lista_participanteXretiros(id_persona)
+                id_ingresado = int(input("Ingrese el ID del retiro asociado al pago que se desea actualizar: "))
+            except ValueError:
+                print("Debe ingresar un número válido para el ID del retiro.")
+                time.sleep(2)
+                continue
+            
+            id_retiro = bd_conections.verificar_id("RetiroPorId", id=id_ingresado)
+            if isinstance(id_retiro, str):
+                print(f"\n{id_retiro}")
+                time.sleep(5)
+                continue
+            
+            if id_retiro is not None:
+                break
+
+            print(f"El retiro con el ID {id_ingresado} no existe. Intente nuevamente.")
+            time.sleep(2)
+
+        
+        # Obtener el ID del pago
+        while True:
+            utils.borrarPantalla()
+            lista_pagoXretiroXparticipante(id_persona, id_retiro)
+            try:
+                id_in = int(input("\nIngrese el ID del pago: "))
+            except ValueError:
+                print("Debe ingresar un número válido para el ID.")
+                time.sleep(2)
+                continue
+
+            id_pago = bd_conections.verificar_id("PagoPorID", id=id_in)
+            if isinstance(id_pago, str):
+                print(f"\n{id_pago}")
+                time.sleep(5)
+                continue
+            
+            if id_pago is not None:
+                break
+
+            print(f"El ID {id_in} no existe. Intente nuevamente.")
+            time.sleep(2)
+        
+        if id_pago is None:
+            print("Error: No se pudo verificar el ID del pago. Intente de nuevo.")
+            time.sleep(2)
+            return
+        
+        # Obtener el valor actual del pago
+        resultado = bd_conections.visualizar_datos(
+            tabla="pago",
+            columnas="valor",
+            condicion=f"id_pago = {id_pago}"
+        )
+        if resultado and len(resultado) > 0:
+            valor_actual = resultado[0][0]
+        else:
+            print("Error: No se pudo obtener el valor actual del pago.")
+            time.sleep(2)
+            return
+        print(f"Valor actual del pago: ${valor_actual}")
+    
+        # Se ingresa los datos nuevos
+        while True:
+            try:
+                nuevo_valor = float(input(f"Ingrese el nuevo valor del pago (máximo ${monto_maximo}): "))
+                if nuevo_valor <= 0:
+                    print("Error: El pago debe ser mayor a 0.")
+                    time.sleep(2)
+                    continue
+                if (nuevo_valor + valor_actual) > monto_maximo:
+                    print(f"Error: El pago total no puede exceder ${monto_maximo}.")
+                    time.sleep(2)
+                    continue
+                
+                valor_actual += nuevo_valor
+                break
+
+            except ValueError:
+                print("Error: El monto debe ser un número.")
+                time.sleep(2)
+            
+        pago_completado = (valor_actual == monto_maximo)
+
+        print("\nActualizando pago...\n")
+        time.sleep(2)
+        utils.borrarPantalla()
+        time.sleep(2)
+
+        # Se actualiza el valor del pago
+        bd_conections.llamar_procedimiento("ActualizarPago",  (valor_actual, int(pago_completado), id_retiro, tipo_persona, id_persona))
+        print("\nPago actualizado correctamente.")
+        time.sleep(2)
+        return
 
 
 def eliminar_registros():
@@ -628,19 +854,18 @@ def lista_retiro_id():
 
 def lista_pago_id():
     tabla = "pago"
-    columnas = "id_pago, valor"
-    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "Valor"])
+    columnas = "id_pago, valor, pago_completado"
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "Valor", "Pago_Completado"])
     print("\n**Lista de Pagos**")
     print(df.to_string(index=False))
     print()
 
 def lista_donacion_id():
     tabla = "donacion"
-    columnas = "id_donacion, nombre"
-    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "Nombre"])
+    columnas = "id_donacion, nombre, valor"
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas),columns=["ID", "Nombre", "Valor"])
     print("\n**Lista de Donaciones**")
     print(df.to_string(index=False))
-    print()
 
 def lista_info_retiros():
     tabla = "retiro"
@@ -661,6 +886,34 @@ def lista_info_donaciones():
     columnas_sql = ",".join(columnas_df)
     df = pd.DataFrame(bd_conections.visualizar_datos(tabla,columnas_sql), columns=columnas_df).to_string(index=False)
     print(df)
+
+
+def lista_participanteXretiros(id_participante):
+    vista = "view_participanteXretiros"
+    columns_df= ["id_retiro", "parroquia", "tipo", "fecha"]
+    columnas_str = ", ".join(columns_df)
+    cond_df=  f"Id_Participante = {id_participante}"
+    df = pd.DataFrame(bd_conections.visualizar_datos(tabla=vista, columnas=columnas_str, condicion=cond_df), columns=columns_df)
+    print("\n**Lista de Retiros asociados al Participante ingresado**")
+    print(df.to_string(index=False))
+    print()
+
+def lista_pagoXretiroXparticipante(id_participante, id_retiro):
+    vista = "view_pagoXretiroXparticipante"
+    columns_df = ["id_pago" ,"parroquia", "tipo", "fecha", "nombre", "apellido", "valor", "pago_completado"]
+    columnas_str = ", ".join(columns_df)
+    cond_df = f"Id_Retiro = {id_retiro} AND Id_Participante = {id_participante}"
+    
+    result = bd_conections.visualizar_datos(tabla=vista, columnas=columnas_str, condicion=cond_df)
+    
+    if result is None or len(result) == 0:
+        print("\n**No se encontraron registros para el pago asociado al participante y el retiro.**")
+        return
+
+    df = pd.DataFrame(result, columns=columns_df)
+    print("\n**Info del Pago asociado al participante y el retiro ingresado**")
+    print(df.to_string(index=False))
+    print()
 
 
 
